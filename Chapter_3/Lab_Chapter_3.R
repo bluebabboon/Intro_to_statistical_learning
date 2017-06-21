@@ -63,6 +63,12 @@ class(lm_fit_model)                                                             
 
 summary(lm_fit_model)
 
+# After fitting the model we want to get data like,residuals,sigma,Rsquared,Fstatistic etc
+# We can see all the data that is present in summary()
+
+names(summary(lm_fit_model))
+
+
 # calling str() will give you an overview of each of the elements inside that model list,you can see that each element is 
 # probably of different shape as well as different datatype too
 str(lm_fit_model)
