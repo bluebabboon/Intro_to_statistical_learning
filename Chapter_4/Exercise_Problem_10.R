@@ -80,12 +80,16 @@ DirectionUntil2008 = Direction[YearUntil2008]
 weekdataAfter2008 = weekdata[!YearUntil2008,]
 DirectionAfter2008 = Direction[!YearUntil2008]
 
-
+# Fitting the model only using data until 2008
 glmModelUntil2008 = glm(formula = Direction ~ Lag2,family = binomial,data = weekdata,subset = YearUntil2008)
 
 glmModelUntil2008
 
-glmPredsUntil2008 = predict(object = glmModelUntil2008,)
+# Predicting for data apart from 2008
+glmPredsAfter2008 = predict(object = glmModelUntil2008,newdata =weekdataAfter2008,type = "response" )
 
+# Converting quantitative variables to qualitative using ifelse function
+glmPredsAfter2008 = ifelse(glmPredsAfter2008 > 0.5, "Up","Down")
 
-
+# Checking with table,
+table(glmPredsAfter2008,DirectionAfter2008)
