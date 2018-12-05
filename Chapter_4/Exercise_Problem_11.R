@@ -172,24 +172,3 @@ mean(knnfit == test.df$mpg01)*100
 
 # % of error , or we can say incorrect predictions are 14%
 (1-mean(knnfit == test.df$mpg01))*100
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
