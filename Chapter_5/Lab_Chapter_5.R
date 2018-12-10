@@ -185,34 +185,83 @@ cv.error.10
 ##########
 #### BOOTSTRAP
 #########
+# Boot strap means nothing but repeatedly sampling the data from the existing one
+# including replacement
+# Using bootstrap in R is pretty straightforward , we use boot() function
+# We are going to use the Portfolio dataset in ISLR package , to illustrate the use of the bootstrap  on this data we must first create a function alpha.fn()
+#
+library(ISLR)
+alpha_fn = function(data,index){
+ X = data$X[index]
+ Y = data$Y[index]
+ return ((var(Y)-cov(X,Y))/(var(X)+var(Y)-2*cov(X,Y)))
+}
+Portfolio
+names(Portfolio)
+nrow(Portfolio)
+
+# Taking the Portfolio dataset as first argument and the 1:100 index as second one
+# Then we are predicting the alpha return as it is described in section 5.2 and Formula 5.7
+alpha_fn(Portfolio,1:100)
+
+# Next we are going to repeatedly select the indexes using sample with replacement as true( this is the basic of bootstrapping)
+set.seed(42)
+# Using replacement of samples we are selecting 100 observations but these samples can have duplicate observations now
+alpha_fn(Portfolio,sample(x = 100,size = 100,replace = TRUE))
+
+# We can do bootstrap analysis by repeatedly using the above command and then taking the standard deviation of all the repeated results
+# Or we can use the boot function that automates this appraoch
+# It takes 3 arguments, first one is data that asks on which data we are going to do the computations
+# Second is the statistic or moreover we can say the function that returns a value for which we are going to compute the standard deviation
+# Third one is R ,or number of replicates that we want the statistic function to be implemented and the result to be computed on
+
+# Also boot function is part of boot library ,so we are going to import that too
+library(boot)
+boot(data = Portfolio,statistic = alpha_fn,R = 1000)
+
+# The output of boot shows us the standard error on our return estimate that is calculated using the bootstrap method
+#
 
 
 
+##########
+## Estimating the Accuracy of a Linear Regression Model
+##########
+# This approach can be used to assess the variability of the coefficients estimates and predictions from a statistical learning method(Means linear regression and logistic etc). Here we are going to use bootstrap to assess the variabiliity of the estimates beta0 and beta1
 
+# Creating a function that calculates the coefficients and outputs them
 
+lm_fn = function(data,index){
+  return(coef(lm(mpg~horsepower,data = data,subset = index)))
+}
 
+# Now using boot function to do this 1000 times
+set.seed(42)
+library(ISLR)
+library(boot)
+boot(data = Auto,statistic = lm_fn,R = 1000)
 
+# Now lets see what are the standard erros using the summary on the lm
+summary(lm(Auto$mpg~Auto$horsepower,data = Auto))$coef
 
+# We can observe that we have difference in the standard errors that we got from the bootstrap and what we got from the summary of the model
+# This is because in the summary calculation we are inherently assuming some assumptions regarding the calculation of variance.
+# They depend on the unknown parameter sigma^2 which is estimated from the RSS
+# And also the standard error formula assume that all x's are fixed and the variability comes from the variation in the erros.
+# The bootstrap approach doesn't make any assumptions regarding the data type and behaviour. So it is more likely to give correct estimate of beta0 and beta1 than the summary() function
 
+# Lets do the bootstrap standard error estimate for the quadratic model for the same mpg and horsepower relation above. Since the model gives good fit for these coefficients , lets calculate the standard error.
 
+lm_quadfn = function(data,index){
+ return(coef(lm(Auto$mpg~Auto$horsepower+I(Auto$horsepower^2),data = Auto,subset = index)))
+}
 
+boot(data = Auto,statistic = lm_quadfn,R = 1000)
 
+summary(lm(Auto$mpg~Auto$horsepower+I(Auto$horsepower^2),data = Auto))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# We can see that the difference in the estimates is reduced as compared to above.
+# In the bootstrap estimate the std error for intercept is 2.09 and in summary function the estimate is 1.8 . As we keep on adding more fit model we will be closer to the bootstrap estimate.
 
 
 
