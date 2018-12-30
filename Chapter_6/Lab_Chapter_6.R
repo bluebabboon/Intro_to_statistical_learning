@@ -147,15 +147,315 @@ plot(regfitfull,scale = "bic")
 # Check the above plot and in that for bic plot , we see that we have several models share a BIC close to -15-, However the model with lowest BIC (Lowest means higher negative value), has only 6 variables
 # They are AtBat,Hits,Walks,CRBI,DivisionW,PutOuts
 # We can use the coef() function to see the coefficeint estimates associated with this model
-
+# Coef function when used on this regsubset needs another argument to let know how many predictors are to be there.
 coef(regfitfull,19)
 
 
 
+######
+## Forward and Backward Stepwise Selection
+## We can use the same regsubsets() function to perform forward stepwise or backward stepwise selection
+## We just have to add another argument "method = "forward"" or "method="backward""
+?regsubsets
+# The default method is exhaustive search method, which means looking through all the possible combination of models
+
+# Using the forward selection method, means going from 0 predictors to full predictors
+
+regfitforward = regsubsets(x = hitterdata$Salary ~ .,data = hitterdata,nvmax = 19,method = "forward")
+regfitforward
+summary(regfitforward)
+
+regfitbackward = regsubsets(x = hitterdata$Salary ~ .,data = hitterdata,nvmax = 19,method = "backward")
+regfitbackward
+summary(regfitbackward)
+
+
+# Observing the coefficients of the said models for both forward and bakcward
+coef(regfitfull,7)
+coef(regfitforward,7)
+coef(regfitbackward,7)
+
+# We can see that using forward ,backward and exhaustive might result in different coefficeints and also different predictors.
+# For this particular data the best one variable through six variable models are each identical
+# But for the best seven-variable models is different from subset selection, forward and backward
+
+
+
+########
+### Choosing Among models using the Validation set approach and Cross Validation
+##
+## We already saw how to choose models using Cp, Bic and adjusted R^2
+## We can use the summary over the regsubsets and use that to plot the differnt type of plots
+#
+# But we will now consider how to select the best model using the validation set and cross-validation approaches.
+# In order to use this approach we have first split our test and training set with indexes
+
+########################
+####### USING VALIDATION SET APPROACH
+########################
+
+
+set.seed(1)
+
+# Here in this type of train and splitting method
+# We are creating a random true and false index vectors with the size of number of rows of hitter data
+# We are randomly splitting the testing and trainign set with replacement and we have no control over the size of trian and test.
+train = sample(c(TRUE,FALSE),nrow(hitterdata),rep = TRUE)
+train_type2 = sample(1:nrow(hitterdata),0.7*nrow(hitterdata))
+# Inversing all the indexes apart from the train to test
+test = (!train)
+# By observing the mean we can say that this much percentage of observations are true and else are false
+mean(train)
+
+# Now applying the regsubsets over the data only considering the training set
+# OK THIS DUMB MISTAKE CAN BE MADE - Dont put in the formula with $,
+# like dont put "hitterdata$Salary ~." only keep "Salary ~." , No need to specify the name and column of the formula by referencing it fomr the dataset even if you didn't attach the data
+# I always thought if we dont attach column names we have to refer the formula with $ for the y we want to predict
+regfit_best = regsubsets(x = Salary~.,data = hitterdata[train,],nvmax = 19)
+#####
+## Another way we wont get this error "variable lengths differ (found for 'AtBat')"
+## regfit_best = regsubsets(x= hitterdata$Salary[train]~.,data=hitterdata[train,],nvmax=19)
+## Use the above and we wont get that error. Basically why that is happening is that
+## in previous when we fit backward and forward we are not using any subset of data
+## So hitterdata$Salary is taking all the indexes while we only want the indexes that are given by train.
+regfit_best
+summary(regfit_best)
+
+# Now computing the validation set error fomr the test set
+# But we have to predict this validation error for each of the model that we have fit
+# So we need to make a matrix which will be the same size of the dataset
+
+test_matrix = model.matrix(object = Salary~.,data = hitterdata[test,])
+# This model.matrix function is used in many times for building an "X" matrix fron the data.
+?model.matrix()
+
+# model.matrix takes its first argument as follows - it takes a formula
+# In that formula if you write x~a+b it will include the a and b columsn but will not include x, as x is the one we are calculating
+# if you want everything just keep ~.
+# And the second argument is the data from which given predictors have to be chosen
+
+# Another way of getting all the columns except the salary column is liek this
+# This type of method is already explored but i forgot in which chapter and which problem
+names(hitterdata)
+# We want all columns but "Salary" column
+names(hitterdata) %in% c("Salary")
+# From the above command we get a boolean array which has false in all except where we have salary
+# We are just going to negate that
+!(names(hitterdata) %in% c("Salary"))
+
+# Now lets use this following data
+testmatrix2 = hitterdata[test,!(names(hitterdata) %in% c("Salary"))]
+
+dim(test_matrix)
+dim(testmatrix2)
+
+# We have differences in the dimensions only because we used different methods, in case of using model.matrix funtion, it adds another column called Intercept
+
+typeof(test_matrix)
+typeof(testmatrix2)
+# Our test_matrix is double while new one is list
+?double
+is.double(test_matrix)
+
+###
+## Now we are going to run a loop for each size i and multiply them into the appropriate columns of the test model matrix to form predictions and compute the MSe
+
+# So we are creating a dummy vector to store the errors for each of the best fit model we get from the regbestfit, (Here we are using )
+valerrors = rep(NA,19)
+
+# Here what we are doing is , going from 1st best fit model to model where all 19 predictors are selected
+# For each given such model , firstly finding the coefficients of the said model
+# Then using that model coefficients to predict but on the testmatrix we have created.
+## The manner we are doing this is we are using only the names that are present from getting the coefficients.
+## Then we are doing a matrix multiplication with the coefficients and testmatrix to get a single column vector of predictons (Essentially we are multiplying matrix of [129x19]x[19x1] to get a single column vector of [129x1] size)
+## This %*% operator will act as vectorized form of multiplication
+# After doing the matrix multiplication we are then taking the squared error and its mean to get MSE
+for (i in 1:19) {
+  coeffi = coef(regfit_best,id = i)
+  pred = test_matrix[,names(coeffi)]%*%coeffi
+  valerrors[i] = mean((hitterdata$Salary[test]-pred)^2)
+}
+
+valerrors
+coeffi
+names(coeffi)
+
+?'%*%'
+
+pred
+dim(pred)
+
+##########
+### EXTRA KNOWLEDGE
+# To see how the multiplication occurs if we dont use matrix multiplication method, we are doing a test type of thing here
+# Here we have multiplied the dataframe with the coefficients without using "%*%"
+# Here it how it behaves
+# Take that our matrix is like this
+# 1 2 3
+# 2 3 4
+# 2 1 4 --> Let this matrix be A , dimension is [3,3]
+# We are multiplying with B matrix like this
+# 1
+# 3 ---> This matrix is B, dimension is [2,1]
+# Now when you do A*B , then B is forced to match the dimension of A and it is replicated like this
+# 1 1 3
+# 3 3 1
+# 1 1 3 ---> This will be our new B' , This is created by taking this new B and dragging it along the column and if the column is filled the next element is continued in the next column
+# Now A*B will be one to one multiplication
+# 1*1 2*1 3*3
+# 2*3 3*3 4*1
+# 2*1 1*1 4*3 --> This will be our A*B
+# And that is what we are getting in this predtest
+predtest = test_matrix[,names(coeffi)]*coeffi
+predtest
+##########
+
+
+
+## We have to go through all these complex matrix multiplicaiton and sh*t because we cannot use predict method in regsubsets
+# Since we are going to use this function time to time lets create a function that can be reused
+
+predict_regsubsets = function(object,newdata,id,...){
+  # The following line of code will extract the formula that we have typed in our given object
+  # Here the object is the regsusbset function that we are going to pass
+  # then for every regsusbset output we have a call attribute which is of type "language" and
+  #   inside that attribute we have to entire formula and the variables stored
+  # Of that stored call, its [[2]] index will give us formula character
+  # But we want that to be stored as formula so we shall convert that string to forumula using
+  #   as.formula
+  formulahere = as.formula(object$call[[2]])
+  matrixhere = model.matrix(object = formulahere,data = newdata)
+
+  # id is for selecting the coefficients of which number of variable model, like do we want model
+  #   which is best with 10 predictors or model with 11 or whatever.
+  coeffi = coef(object = object,id = id)
+  xvariables = names(coeffi)
+  matrixhere[,xvariables]%*%coeffi
+}
+
+# Ok now back to model selection
+# Among the errors that we have generated and stored in valerrors above we have to find the best one, by selecting which one has the lowest MSE
+valerrors
+which.min(valerrors)
+# As we can see the MSE of the 10th model which has 10 variables has the lowest MSE
+#   The coefficients of the MSE are
+coef(regfit_best,10)
+
+# Now using the validation approach that we have performed it recommended us 10 variable model
+# Lets use the entire data instead of training data and then calculate the coefficients
+
+regfit_best_validation_full = regsubsets(Salary~.,data = hitterdata,nvmax = 19)
+# Displaying the output of the best coefficients of the model with 10 predictors
+coef(regfit_best_validation_full,10)
+
+# If we observe we have different coefficients when we used all the dataset instead the case when
+#    we used only some percent as training data.This is bound to happen but we always has to use
+#    by splitting the data into training and testing since this will help us in avoiding overfit.
 
 
 
 
+########################
+####### USING CROSS - VALIDATION SET APPROACH
+########################
+## In validation we took the data and split into training and testing in to two groups.
+## In cross validatino we are going to split into 10 parts or say n parts and then we are going
+##  to use n-1 parts as trainign and uset the rest 1 part as testing
+## Lets do a 10 fold cross validation
+## That means lets split our data in to 10 parts
+
+set.seed(42)
+k=10
+folds = sample(1:k,nrow(hitterdata),replace = TRUE)
+folds
+
+# Here folds is a vector which has numebers from 1 to 10 that is distrubuted randomly. The length
+#   of folds is same as the number of rows our hitter data has.It will be used to assign each
+#   observation of hitterdata to a particular fold and in this way we created 10 different groups
+#   of data.
+
+cv_errors = matrix(data = NA,nrow = k,ncol = 19,dimnames = list(NULL,paste(1:19)))
+cv_errors
+
+# cv_erros is a matrix we have created to log the cross validation error for each model and also
+# for each fold. So for a particular group of data we are using as trainig and testing we are
+# going to fit the model with differnet number of predictors, Finally we are going to sum all the
+
+# So an element cv_errors[i,j] means cross validation error for ith fold of data and the model
+#   has j number of predictors in it with its besst selected predictors that is obtained from the
+#   regsusbsets function
+
+for (i in 1:k) {
+  # Here we are going to perform best_fit for each fold and in each fold we are selecting data
+  #   all except where the fold is equal to i here. So for 1sst fold all data will be selected
+  #   except where ever fold is equal to 1, In a way we are seelcting training data here where
+  #   fold is not equal to 1
+  best_fit = regsubsets(x = Salary~.,data = hitterdata[folds != i,],nvmax = 19)
+
+  # Now for this current best_fit model for this ith cross valid data, we are doing following
+  #   First we make use of the function we have created which can give predictions as an single
+  #     column vector of predictions that we can compare with actual one to take MSE. Here we are
+  #     doing this by giving the model as first argument , the data from which predictions have
+  #     to be generated from.(Selecting the test data where the fold == current i value) and also
+  #     lastly we are looping the models from 1 to 19 predictors best models , so for each we
+  #     have to have an index to output the coefficients from coef function
+  #
+  for (j in 1:19) {
+
+    predhere = predict_regsubsets(object = best_fit,newdata = hitterdata[folds == i,],id = j)
+
+    # After getting predictions for jth best model we are getting MSE by subracting the actual
+    #   values from the predictions we have made and we are squaring them and taking mean of all
+    #   the observations to get the MSE. Then we are going to store in the cv_errors we have
+    #   created earlier. Here the importtatnt point to note is that we have select observations
+    #   which are considered to be test data, that means where ever the folds index is equal to i
+    cv_errors[i,j] = mean((hitterdata$Salary[folds == i] - predhere)^2)
+
+  }
+
+}
+
+# Now you can see that the cv_errors has been populated.
+cv_errors
+
+# We are doing all the steps to do one thing and that is selecting a model with x number of
+#   predictors where x is where the MSE is lowest.
+# So we are going to take average of all the MSE's of a particular x numbered variable model
+#   for all the given 10 folds
+
+# This can be acheived by apply() fucntion
+?apply
+
+# apply() takes data as first argument, second argumetn is either 1 or 2, 1 means apply
+#   the third argument which is function row wise and 2 means apply the third argument
+#   which is function in column wise
+#
+# We want the averages for all the rows (which are folds , k times) for a particular column.
+# So we have to use 2 in the second argument of apply
+mean_cv_erros = apply(cv_errors, 2, mean)
+
+mean_cv_erros
+# Finding the lowest mean of errors is for 11 variabled model.
+# So we are gonna select model which has 11 variablesk
+which.min(mean_cv_erros)
+
+plot(mean_cv_erros,type = 'b')
+
+
+# lets use all the data now insted of just data in the training set
+regfit_best_crossvalidation_full = regsubsets(x = Salary~.,data = hitterdata,nvmax = 19)
+# Coefficients of 11 variabled model is
+coef(regfit_best_crossvalidation_full,11)
+
+
+
+
+
+
+
+#######################
+########## RIDGE AND LASSO REGRESSION
+#######################
 
 
 

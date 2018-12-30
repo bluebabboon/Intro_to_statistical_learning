@@ -28,7 +28,7 @@ attach(stockdata)
 # pairs function to do a pair plot between each column with each other sort of like covariance matrix
 pairs(Smarket)
 
-# cor function computes the correlation of the matrix which is called inside it. Each covariance that is divided by its respective columns std deviation is correlation. 
+# cor function computes the correlation of the matrix which is called inside it. Each covariance that is divided by its respective columns std deviation is correlation.
 # This will not work,it needs to be numeric
 ?cor
 cor(Smarket)
@@ -83,7 +83,7 @@ model_preds = rep("Down",1250)
 
 # Now from this data we will change each element to UP where the probability in model_probs data is > 0.5, R has this speciality to change one array's value based on another array's value just by calling inside it ,sort of like condition
 # This means select all the indexes for which model_probs> 0.5 and the values of elements for these indexes in model_preds is then assigned the value "UP"
-# We can verify this by checking the lengths 
+# We can verify this by checking the lengths
 length(model_preds)                           # This will be 1250
 length(model_preds[model_probs>0.5])          # This will be 964
 # It means that out of 1250 rows we have 964 rows which are predicted as Up and the rest are denoted as DOWN(which are by default)
@@ -99,14 +99,14 @@ model_preds
 
 # Given the predictions we want to see the confusion matrix of these predicted model ,we can do that with table() function
 ?table
-# takes two arguments , checks whether the array of elements of first one matches with second and gives confusion matrix as output 
+# takes two arguments , checks whether the array of elements of first one matches with second and gives confusion matrix as output
 # table function is not case sensitive , so be cautious in comparing the arrays
 table(model_preds,Direction)
 
 # To get the proportion of elements that are same we can use the following
 # model_preds == Direction will create a new vector with bool values and give TRUE or FALSE accordingly
 # mean will give the average of total true values among them. So total 52% of values are predicted correctly
-mean(model_preds == Direction)                
+mean(model_preds == Direction)
 
 # So total number of values that are correctly predicted are, 652
 length(model_preds)*mean(model_preds == Direction)
@@ -121,7 +121,7 @@ length(model_preds)*mean(model_preds == Direction)
 
 # Creating a vector of bool values which has false if year is > 2005 and true if year < 2005
 # This data has TRUE values until 998 and FALSE from there on
-train_vector = (Year<2005)
+train_vector = (stockdata$Year<2005)
 
 # Smarket[1,] will give ouput as 1st row of this dataframe and all columns
 # Smarket[c(TRUE,TRUE,TRUE),] will give output as 1st,2nd and 3rd row of this dataframe and all columns
@@ -135,7 +135,7 @@ dim(market_2005_data)              # This will be 252 rows and 9 columns
 Direction_2005_data = Direction[!train_vector]
 
 # Fitting the data to new model
-# Here we are using subset of data of the full dataset Smarket ,by using an argument called subset in the glm function 
+# Here we are using subset of data of the full dataset Smarket ,by using an argument called subset in the glm function
 model_except_2005 = glm(Direction~ Lag1+Lag2+Lag3+Lag4+Lag5+Volume,
                         data = Smarket, family = binomial, subset = train_vector)
 summary(model_except_2005)
@@ -204,9 +204,9 @@ lda_fit = lda(Direction~ Lag1+Lag2,data = Smarket,subset = train_vector)
 lda_fit
 
 # calling above lda_fit model will gives us prior probabilites of our response and then group means for each predictor
-# Group means mean that its the average of that predictor in that particular response type 
+# Group means mean that its the average of that predictor in that particular response type
 
-# And then it gives us coefficients of linear discriminants - These are like indication of each predictor's significance in discriminating or seperating the groups from each other. 
+# And then it gives us coefficients of linear discriminants - These are like indication of each predictor's significance in discriminating or seperating the groups from each other.
 
 # To know further about what linear discriminants are refer this
 # https://sebastianraschka.com/Articles/2014_python_lda.html#principal-component-analysis-vs-linear-discriminant-analysis
@@ -219,7 +219,7 @@ plot(lda_fit)
 lda_predictions = predict(lda_fit,newdata = market_2005_data)
 lda_predictions
 
-# The predictions of lda will output a list of 3,where the first column is a class which tells which class here "up" or "down" each observation belongs to 
+# The predictions of lda will output a list of 3,where the first column is a class which tells which class here "up" or "down" each observation belongs to
 # Second one is named as posterior which is nothing but posterior probability P(Y=k|X=x) , it has 2 columns which is nothing but for a given observation it is giving posterior probability for each of the class, The higher probability class is then shown in the class column which is discussed above
 # Third one is column of linear discriminant. Here we have output for First linear discriminant
 # Refer the link above which is posted to know more about linear discriminant.In that blog he says that linear discriminant are similar to principal components the only difference is that principal components do a unsupervised discriminantion betweeen our observations to have maximized variance, where as linear discriminants do a supervised discriminantion i.e., discrimination to get maximized groups with more variance between classes
@@ -245,7 +245,7 @@ lda_predictions$posterior[,1] >= 0.5
 # Below command will output 70, so that means on 70 days the probability of market being down is >= 0.5
 sum(lda_predictions$posterior[,1] >= 0.5)
 
-# The number of days the market being down probability is < 0.5 is 
+# The number of days the market being down probability is < 0.5 is
 # It will output 182 days
 sum(lda_predictions$posterior[,1] < 0.5)
 
@@ -352,7 +352,7 @@ caravan_data = Caravan
 
 ?scale
 
-# Here in our dataset we have 86 columsn out of which 86th one is qualitative, i.e., factor type, we cant scale a factor type so we have to exclude that column 
+# Here in our dataset we have 86 columsn out of which 86th one is qualitative, i.e., factor type, we cant scale a factor type so we have to exclude that column
 
 scaled_X_caravan = scale(caravan_data[,-86])
 caravan_data
@@ -437,7 +437,7 @@ lgfit_preds[lgfit_probs > 0.5] = "Yes"
 # Drawing a comparison table with predicted probs and actual data
 table(lgfit_preds, test_Y)
 # Apparently our prediction is worse, since out of all predicted 7 people none of them bought insurance. Lets increase the threshold value of probability for 0.25 insted of 0.5
-# 
+#
 lgfit_preds = rep("No",1000)
 lgfit_preds[lgfit_probs > 0.25] = "Yes"
 
