@@ -2,11 +2,13 @@
 library(ISLR)
 
 # We are going to use a new data here ,its called Hitters data
-# We want to predict a baseball players salary on the basis of various statistics associated with performance in the previous year
+# We want to predict a baseball players salary on the basis of various statistics associated
+#   with performance in the previous year
 
 hitterdata = Hitters
 
-# From this fix we can see the data.and we can observe that some of the salary data is missing in the data
+# From this fix we can see the data.and we can observe that some of the salary data is missing
+#   in the data
 fix(hitterdata)
 
 # The following function is.na will return a bool vector on this salary with true or false
@@ -35,7 +37,8 @@ sum(is.na(x = hitterdata))
 
 
 ###
-## Lets use the library called leaps which does the best subset selection by identifying the best model that contaisn a given number of predictors , where best is quantiied using RSS
+## Lets use the library called leaps which does the best subset selection by identifying the best
+##  model that contaisn a given number of predictors , where best is quantiied using RSS
 install.packages("leaps")
 ??leaps
 library(leaps)
@@ -44,7 +47,8 @@ library(leaps)
 # We are going to use regsubsets function for model selection.
 # It scans through all the subsets of variables using best subset selection model method
 # And then gives output if we call summary for each number of predictors which are relevant
-# That means for each number of predictors that we want to fit the model with, it will tell what are best predictors that we can use to predict in best way using RSS
+# That means for each number of predictors that we want to fit the model with, it will tell what
+#   are best predictors that we can use to predict in best way using RSS
 
 regfit = leaps::regsubsets(hitterdata$Salary~.,hitterdata)
 
@@ -78,7 +82,8 @@ par(mfrow=c(2,2))
 
 ?plot
 
-# Using the "l" inside plot function with type will let us plot a line graph instead of dotted scatter plot
+# Using the "l" inside plot function with type will let us plot a line graph instead of
+#   dotted scatter plot
 # Plotting the RSS with number of variables
 plot(regfitfullsummary$rss,xlab = "Number of variables",ylab = "RSS",type = "l")
 
@@ -86,8 +91,11 @@ plot(regfitfullsummary$rss,xlab = "Number of variables",ylab = "RSS",type = "l")
 plot(regfitfullsummary$adjr2,xlab = "Number of variables",ylab = "Adjusted R^2",type = "l")
 
 
-# Another function to the rescue is point function which works like the plot command ,except that it puts points on a plot that has already been created, insted of creating a new plot
-# which.max() is another function which can be used to identify the locaiton of maximum point of a vector.We will see which is the max point in the vector of values we  have plotted and then use that index to use it inisde the points() function.
+# Another function to the rescue is point function which works like the plot command ,
+#   except that it puts points on a plot that has already been created, insted of creating a new plot
+# which.max() is another function which can be used to identify the locaiton of maximum point of a
+#    vector.We will see which is the max point in the vector of values we  have plotted and then
+#    use that index to use it inisde the points() function.
 #
 which.max(regfitfullsummary$adjr2)
 
@@ -98,21 +106,28 @@ which.max(regfitfullsummary$adjr2)
 
 # The arguments inside the points function are
 # First argument is the index where the modification of datapoint's apperance takes place to be
-# Second argument is the dataset that we are using and on which the indexes value has to be derived from
-# Actually the first 2 arguments here means that x and y coordinate on the plot which we want to plot on
-# And this function will plot on the current plot that is activated. Now the second one is activated and it will use that as reference until we use another plot function
+# Second argument is the dataset that we are using and on which the indexes value has to be
+#   derived from
+# Actually the first 2 arguments here means that x and y coordinate on the plot which we want
+#   to plot on
+# And this function will plot on the current plot that is activated. Now the second one is
+#   activated and it will use that as reference until we use another plot function
 # col is just argument that gives colour to the point
-# cex is the argument that increases the dot size that we are plotting. Giving 2 value is the best one.
-# pch is the plotting character, here 20 stands for circle, we can also have square or various other things.
+# cex is the argument that increases the dot size that we are plotting.
+#   Giving 2 value is the best one.
+# pch is the plotting character, here 20 stands for circle, we can also have square
+#   or various other things.
 points(11,regfitfullsummary$adjr2[11],col="red",cex=2,pch=20)
 
 
-# In a similar fashion we can plot the Cp, and BIC and indicate the models which has the smallest statistic using which.min()
+# In a similar fashion we can plot the Cp, and BIC and indicate the models which has the
+#   smallest statistic using which.min()
 # Using line plot
 plot(regfitfullsummary$cp,xlab = "Number of predictors",ylab = "Cp value",type = 'l')
 # Finding the minimum of the cp values
 which.min(regfitfullsummary$cp)
-# 10th one is the minimum index, Now using points function to plot this point on the currently activated grpah that is nothing but the cp graph
+# 10th one is the minimum index, Now using points function to plot this point on
+#   the currently activated grpah that is nothing but the cp graph
 points(10,regfitfullsummary$cp[10],col="green",cex=2,pch=20)
 
 
@@ -127,7 +142,8 @@ points(6,regfitfullsummary$bic[6],col="magenta",cex=2,pch=20)
 
 #####
 ## Until now we are using the summary of the fitted model that is from the regsubsets
-## We can use the actual output of the regsubests instead of summary to use the built in plot command which can be used to display the selected variables
+## We can use the actual output of the regsubests instead of summary to use the
+##  built in plot command which can be used to display the selected variables
 
 par(mfrow=c(2,2))
 
@@ -136,28 +152,36 @@ par(mfrow=c(2,2))
 
 # Here it plots a plot which has variables on the x axis and what ever the criteron on the Y axis
 # The plot shows a white and black plot
-# It can be interpreted in the following way. For a given Y value and if we are checking for a particular R^2 value, we see the model that it gives that R^2
-# In that model if we go along the X axis (Draw a line which is parellel to X axis at that particular Y value), then if a particular variable is present in that model we see a "BLACK" colored square on the plot.
+# It can be interpreted in the following way. For a given Y value and if we are checking for a
+#    particular R^2 value, we see the model that it gives that R^2
+# In that model if we go along the X axis (Draw a line which is parellel to X axis at that
+#   particular Y value), then if a particular variable is present in that model we see a
+#   "BLACK" colored square on the plot.
 # If that particular variable is not present , then it will be "WHITE" colored square
 plot(regfitfull,scale = "r2")
 plot(regfitfull,scale = "adjr2")
 plot(regfitfull,scale = "Cp")
 plot(regfitfull,scale = "bic")
 
-# Check the above plot and in that for bic plot , we see that we have several models share a BIC close to -15-, However the model with lowest BIC (Lowest means higher negative value), has only 6 variables
+# Check the above plot and in that for bic plot , we see that we have several models share a
+#   BIC close to -15-, However the model with lowest BIC (Lowest means higher negative value),
+#   has only 6 variables
 # They are AtBat,Hits,Walks,CRBI,DivisionW,PutOuts
 # We can use the coef() function to see the coefficeint estimates associated with this model
-# Coef function when used on this regsubset needs another argument to let know how many predictors are to be there.
+# Coef function when used on this regsubset needs another argument to let know how many
+#   predictors are to be there.
 coef(regfitfull,19)
 
 
 
 ######
 ## Forward and Backward Stepwise Selection
-## We can use the same regsubsets() function to perform forward stepwise or backward stepwise selection
+## We can use the same regsubsets() function to perform forward stepwise or backward
+##  stepwise selection
 ## We just have to add another argument "method = "forward"" or "method="backward""
 ?regsubsets
-# The default method is exhaustive search method, which means looking through all the possible combination of models
+# The default method is exhaustive search method, which means looking through all the
+#   possible combination of models
 
 # Using the forward selection method, means going from 0 predictors to full predictors
 
@@ -175,7 +199,8 @@ coef(regfitfull,7)
 coef(regfitforward,7)
 coef(regfitbackward,7)
 
-# We can see that using forward ,backward and exhaustive might result in different coefficeints and also different predictors.
+# We can see that using forward ,backward and exhaustive might result in different coefficeints
+#   and also different predictors.
 # For this particular data the best one variable through six variable models are each identical
 # But for the best seven-variable models is different from subset selection, forward and backward
 
@@ -187,7 +212,8 @@ coef(regfitbackward,7)
 ## We already saw how to choose models using Cp, Bic and adjusted R^2
 ## We can use the summary over the regsubsets and use that to plot the differnt type of plots
 #
-# But we will now consider how to select the best model using the validation set and cross-validation approaches.
+# But we will now consider how to select the best model using the validation set and
+#   cross-validation approaches.
 # In order to use this approach we have first split our test and training set with indexes
 
 ########################
@@ -198,26 +224,32 @@ coef(regfitbackward,7)
 set.seed(1)
 
 # Here in this type of train and splitting method
-# We are creating a random true and false index vectors with the size of number of rows of hitter data
-# We are randomly splitting the testing and trainign set with replacement and we have no control over the size of trian and test.
+# We are creating a random true and false index vectors with the size of number of rows
+#   of hitter data
+# We are randomly splitting the testing and trainign set with replacement and we have no
+#  control over the size of trian and test.
 train = sample(c(TRUE,FALSE),nrow(hitterdata),rep = TRUE)
 train_type2 = sample(1:nrow(hitterdata),0.7*nrow(hitterdata))
 # Inversing all the indexes apart from the train to test
 test = (!train)
-# By observing the mean we can say that this much percentage of observations are true and else are false
+# By observing the mean we can say that this much percentage of observations are true
+#   and else are false
 mean(train)
 
 # Now applying the regsubsets over the data only considering the training set
 # OK THIS DUMB MISTAKE CAN BE MADE - Dont put in the formula with $,
-# like dont put "hitterdata$Salary ~." only keep "Salary ~." , No need to specify the name and column of the formula by referencing it fomr the dataset even if you didn't attach the data
-# I always thought if we dont attach column names we have to refer the formula with $ for the y we want to predict
+# like dont put "hitterdata$Salary ~." only keep "Salary ~." , No need to specify the name
+#   and column of the formula by referencing it fomr the dataset even if you didn't attach the data
+# I always thought if we dont attach column names we have to refer the formula with $ for
+#   the y we want to predict
 regfit_best = regsubsets(x = Salary~.,data = hitterdata[train,],nvmax = 19)
 #####
 ## Another way we wont get this error "variable lengths differ (found for 'AtBat')"
 ## regfit_best = regsubsets(x= hitterdata$Salary[train]~.,data=hitterdata[train,],nvmax=19)
 ## Use the above and we wont get that error. Basically why that is happening is that
 ## in previous when we fit backward and forward we are not using any subset of data
-## So hitterdata$Salary is taking all the indexes while we only want the indexes that are given by train.
+## So hitterdata$Salary is taking all the indexes while we only want the indexes that are
+##  given by train.
 regfit_best
 summary(regfit_best)
 
@@ -230,7 +262,8 @@ test_matrix = model.matrix(object = Salary~.,data = hitterdata[test,])
 ?model.matrix()
 
 # model.matrix takes its first argument as follows - it takes a formula
-# In that formula if you write x~a+b it will include the a and b columsn but will not include x, as x is the one we are calculating
+# In that formula if you write x~a+b it will include the a and b columsn but will not
+#   include x, as x is the one we are calculating
 # if you want everything just keep ~.
 # And the second argument is the data from which given predictors have to be chosen
 
@@ -249,7 +282,8 @@ testmatrix2 = hitterdata[test,!(names(hitterdata) %in% c("Salary"))]
 dim(test_matrix)
 dim(testmatrix2)
 
-# We have differences in the dimensions only because we used different methods, in case of using model.matrix funtion, it adds another column called Intercept
+# We have differences in the dimensions only because we used different methods, in case
+#   of using model.matrix funtion, it adds another column called Intercept
 
 typeof(test_matrix)
 typeof(testmatrix2)
@@ -258,16 +292,22 @@ typeof(testmatrix2)
 is.double(test_matrix)
 
 ###
-## Now we are going to run a loop for each size i and multiply them into the appropriate columns of the test model matrix to form predictions and compute the MSe
+## Now we are going to run a loop for each size i and multiply them into the appropriate
+##  columns of the test model matrix to form predictions and compute the MSe
 
-# So we are creating a dummy vector to store the errors for each of the best fit model we get from the regbestfit, (Here we are using )
+# So we are creating a dummy vector to store the errors for each of the best fit model
+#   we get from the regbestfit, (Here we are using )
 valerrors = rep(NA,19)
 
-# Here what we are doing is , going from 1st best fit model to model where all 19 predictors are selected
+# Here what we are doing is , going from 1st best fit model to model where all 19
+#   predictors are selected
 # For each given such model , firstly finding the coefficients of the said model
 # Then using that model coefficients to predict but on the testmatrix we have created.
-## The manner we are doing this is we are using only the names that are present from getting the coefficients.
-## Then we are doing a matrix multiplication with the coefficients and testmatrix to get a single column vector of predictons (Essentially we are multiplying matrix of [129x19]x[19x1] to get a single column vector of [129x1] size)
+## The manner we are doing this is we are using only the names that are present from
+##  getting the coefficients.
+## Then we are doing a matrix multiplication with the coefficients and testmatrix to get a
+##  single column vector of predictons (Essentially we are multiplying matrix of [129x19]x[19x1]
+##  to get a single column vector of [129x1] size)
 ## This %*% operator will act as vectorized form of multiplication
 # After doing the matrix multiplication we are then taking the squared error and its mean to get MSE
 for (i in 1:19) {
@@ -287,7 +327,8 @@ dim(pred)
 
 ##########
 ### EXTRA KNOWLEDGE
-# To see how the multiplication occurs if we dont use matrix multiplication method, we are doing a test type of thing here
+# To see how the multiplication occurs if we dont use matrix multiplication method, we are
+#   doing a test type of thing here
 # Here we have multiplied the dataframe with the coefficients without using "%*%"
 # Here it how it behaves
 # Take that our matrix is like this
@@ -300,7 +341,8 @@ dim(pred)
 # Now when you do A*B , then B is forced to match the dimension of A and it is replicated like this
 # 1 1 3
 # 3 3 1
-# 1 1 3 ---> This will be our new B' , This is created by taking this new B and dragging it along the column and if the column is filled the next element is continued in the next column
+# 1 1 3 ---> This will be our new B' , This is created by taking this new B and dragging it
+#   along the column and if the column is filled the next element is continued in the next column
 # Now A*B will be one to one multiplication
 # 1*1 2*1 3*3
 # 2*3 3*3 4*1
@@ -312,7 +354,8 @@ predtest
 
 
 
-## We have to go through all these complex matrix multiplicaiton and sh*t because we cannot use predict method in regsubsets
+## We have to go through all these complex matrix multiplicaiton and sh*t because we cannot
+##    use predict method in regsubsets
 # Since we are going to use this function time to time lets create a function that can be reused
 
 predict_regsubsets = function(object,newdata,id,...){
@@ -334,7 +377,8 @@ predict_regsubsets = function(object,newdata,id,...){
 }
 
 # Ok now back to model selection
-# Among the errors that we have generated and stored in valerrors above we have to find the best one, by selecting which one has the lowest MSE
+# Among the errors that we have generated and stored in valerrors above we have to find the best
+#   one, by selecting which one has the lowest MSE
 valerrors
 which.min(valerrors)
 # As we can see the MSE of the 10th model which has 10 variables has the lowest MSE
@@ -470,8 +514,8 @@ library(glmnet)
 
 ## This function glmnet has different syntax from the normal regression of glm and lm
 ## The main different is that we must pass in an x matrix as well as y venctor  and we dont use
-##  y~x syntax. We will now perform ridge regression and the lasso in order to predict Salary on
-##  the Hitters data. As usual we have to remove the NA values to be removed from the data.
+##    y~x syntax. We will now perform ridge regression and the lasso in order to predict Salary on
+##    the Hitters data. As usual we have to remove the NA values to be removed from the data.
 ##
 
 x = model.matrix(Salary~., data = hitterdata)[,-1]
@@ -509,11 +553,48 @@ grid
 ?seq
 
 # Sequence function to generate uniformly spaced values , first argument is from which value to start
-#   Second arguemnt is at which value to stop. Thrid arguemnt is how many values we want. In the below
+#   Second arguemnt is at which value to stop. Thrid arguemnt is how many values we want.
+#   In the below
 #   sequence example we want 100 equally spaced values, from 10 to -2 and they have to be 100 values
 seq(10,-2,length = 100)
 
-# And then we are making a grid where we are raising 10 to the power of this sequence generated values.
+# And then we are making a grid where we are raising 10 to the power of this sequence
+#   generated values.
+?glmnet
+## The arguments for glmnet are as follows
+##  The first argument is the predictors data whcih is in matrix form, it has dimension of
+##    numofobservations x numofpredictors.
+##  Second argument is the response variable. Should have same number of rows as the x
+##  Third argument is alpha which says either lasso or ridge (Lasso when alpah =1 and ridge when its 0)
+##  Fourth argument is lambda which can be either vector or single value.This is literally the lambda
+##    that we use in the ridge and lasso and by varying this we actually get different models
+##    Here in this example we have created a  vector of lambda's ranging from 10^10 to 10^-2
+ridge_mod = glmnet(x = x,y = y,alpha = 0,lambda = grid)
+dim(coef(ridge_mod))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
