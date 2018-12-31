@@ -456,19 +456,64 @@ coef(regfit_best_crossvalidation_full,11)
 #######################
 ########## RIDGE AND LASSO REGRESSION
 #######################
+# Ridge and lasso regression uses another parameter to reduce the size of coefficients and also
+#   reduce the overfit that is produced by normal regression.
+#
+####
+## We use glmnet package in order to preform the ridge regression and lasso
+install.packages("glmnet")
+?glmnet
+??glmnet
+# Loading the library glmnet
+library(glmnet)
+?glmnet
+
+## This function glmnet has different syntax from the normal regression of glm and lm
+## The main different is that we must pass in an x matrix as well as y venctor  and we dont use
+##  y~x syntax. We will now perform ridge regression and the lasso in order to predict Salary on
+##  the Hitters data. As usual we have to remove the NA values to be removed from the data.
+##
+
+x = model.matrix(Salary~., data = hitterdata)[,-1]
+
+# Creating a matrix that has all the columns except for the Salary column, Also when we create
+#   this the matrix function creates this intercept column where we have 1 throughout all the
+#   rows. Inorder to avoid that we are neglecting the first column with [,-1] - before its index.
+
+y = hitterdata$Salary
+
+# This x and y contains no NA rows since we have eliminated them by using na.omit(hitterdata)
+sum(is.na(x))
+sum(is.na(y))
+
+# We can see that sum of all NA's in x and y is 0
+
+# So here matrix x is our training set containing only predictors and y is the output we want to
+#   predict.
 
 
+######################
+##### RIDGE REGRESSION
+######################
+
+#####
+## The glmnet() funciton has argument called alpha, This alpha indicates whether we are fitting a
+##  Ridge regression or lasso regression. If [ alpha =1 then its LASSO] [alpha=0 then its RIDGE]
 
 
+## Fitting a ridge regression model
+library(glmnet)
+grid = 10^seq(10,-2,length=100)
+grid
 
+?seq
 
+# Sequence function to generate uniformly spaced values , first argument is from which value to start
+#   Second arguemnt is at which value to stop. Thrid arguemnt is how many values we want. In the below
+#   sequence example we want 100 equally spaced values, from 10 to -2 and they have to be 100 values
+seq(10,-2,length = 100)
 
-
-
-
-
-
-
+# And then we are making a grid where we are raising 10 to the power of this sequence generated values.
 
 
 
