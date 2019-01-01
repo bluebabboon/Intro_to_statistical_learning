@@ -560,6 +560,8 @@ seq(10,-2,length = 100)
 
 # And then we are making a grid where we are raising 10 to the power of this sequence
 #   generated values.
+# ALSO IMPORTANT POINT is that the glmnet function standardizes our data by default , so if one doesnt
+#   want that we have to give the value of argument standardize to be FALSE
 ?glmnet
 ## The arguments for glmnet are as follows
 ##  The first argument is the predictors data whcih is in matrix form, it has dimension of
@@ -571,6 +573,83 @@ seq(10,-2,length = 100)
 ##    Here in this example we have created a  vector of lambda's ranging from 10^10 to 10^-2
 ridge_mod = glmnet(x = x,y = y,alpha = 0,lambda = grid)
 dim(coef(ridge_mod))
+
+# We have 100 values of lambda which are nothing but grid values here and also for each lambda
+#   we have a ridge regression fit.The fit is with all the coefficients but the dimesion is
+#   20x100 because we have another coefficient for intercept.
+
+ridge_mod
+# Ridge fit that we have done above has list of 12 elements. and if we call it just a function like
+#   that it will gives us 3 column like outputs, these columsn are first is df- which means degrees
+#   of freedom and second is % dev which says percentage of deviantion and the third one is lambda
+#   which we are supplying externally
+#
+# IF we want thee coefficients of a particular value of lambda we can use the following
+ridge_mod$lambda[50]
+# This gives us the value of lambda at the 50th grid value that we have supplied.If we need coefficient
+#   at this particular lambda we have to this
+
+# The following line of code will give us the coefficients of our ridge fit for the lambda value of 50
+coef(ridge_mod)[,50]
+# The following line of code will give us how the first predictor , here "AtBat is varying as we change
+#   our lambda from 10^10 to 10^-2
+coef(ridge_mod)[2,]
+
+############
+#### L2 NORM
+#############
+# The following is sqrt(c1^2+c2^2....cp^2) where c0, c1 are the coefficients of the predictors
+#   This is nothing bu thte l2 norm of the coefficients. Search google for what is l2 nrom
+#
+# We have larger l2 norm for coefficients as the lambda value keeps on decreasing.
+# We generally plot this type of plot for all the coefficients
+# On X axis lies the ratio of this (l2norm with ridge of coefficients / l2 norm without ridge for coef)
+# On Y axis lies the standardized value of each coefficient, for each coefficients we have a plot
+sqrt(sum(coef(ridge_mod)[-1,50]^2))
+
+
+
+ridge_mod$lambda[60]
+coef(ridge_mod)[,60]
+coef(ridge_mod)[-1,60]
+
+# As we can see the lambda value for the 60th value of grid is only 705 but its l2 norm for coefficents
+#   is increased to 57, previously it is only 6
+sqrt(sum(coef(ridge_mod)[-1,60]^2))
+
+
+# We can use predict method in this glmnet library, we can use predict to predict for any value of
+#   our own lambda
+predict(object = ridge_mod,s = 50,type = "coefficients")[1:20,]
+
+
+####
+## Now lets split the dataset in to test and train and do the fitting of ridge again.
+
+set.seed(42)
+# Creating indexes for test and train usig sample function
+train = sample(1:nrow(x),nrow(x)/2)
+test = (-train)
+
+# Splitting the dataset , or more like creating different datasets
+y_test = y[test]
+x_test = x[test,]
+y_train = y[train]
+x_train = x[train,]
+
+
+# Fitting our model of ridge regression on training data, but with thresold until 1e-12 for gradient
+#   descent
+ridge_mod = glmnet(x = x_train,y = y_train,alpha = 0,lambda = grid,thresh = 1e-12)
+ridge_mod$lambda[50]
+
+# As ridge has predict function inbuilt, it has some important arguments
+#   First argument is asusual the object is our model, and newx is on the x_test dataset that we want
+#   Third argument s, means for which value of lambda we want to predict. s is lambda value here.
+?predict.glmnet
+ridge_pred = predict(object = ridge_mod,newx = x_test,s = 4)
+
+mean((ridge_pred - y_test)^2)
 
 
 
