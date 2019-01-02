@@ -649,28 +649,80 @@ ridge_mod$lambda[50]
 ?predict.glmnet
 ridge_pred = predict(object = ridge_mod,newx = x_test,s = 4)
 
+# The MSE of this particular ridge prediction is , ( This is for lambda = s = 4)
 mean((ridge_pred - y_test)^2)
 
+# Fitting the model with very high value of lambda , Here lambda is 1e10
+ridge_pred = predict(object = ridge_mod,newx = x_test,s = 1e10)
+# MSE for this very high value of lambda is
+mean((ridge_pred - y_test)^2)
+
+# For a very large value of lambda all the coefficients are forced to become zero
+# Our lambda for 1e10 is the first value in our grid of lambda values
+ridge_mod$lambda[1]
+# The coefficients of the model which has lambda as 1e10 are as follows
+coef(ridge_mod)[,1]
+# As one can observe for this value of lambda our coefficients are in ranges of 1e-6
+#   Which indicates our predictors are less influencing and only intercept is being used to predict
 
 
+# If we fit a model where there are 0 predictors and only intercept, then we would have to predict
+#   each test observation using the mean on training observations
+#   This means average of squares where each square is obtained by taking average of training -
+#   testing
+#
+#   Simply the formula for MSE is average((mu0 - test)^2), where mu0 is average of training response
+mean( ( mean(y[train])-y_test )^2 )
+
+# As you can see this is same MSE where we fit the model which has lambda as 1e10
 
 
+##
+# Lets predict for a model where lambda is 0, that means we are just fitting a linear regression model
+#
+# We have to give another argument called "exact=T" which shall be only used when we want to predict
+#   for anyother value of lambda otherthan what we have specified in the grid while creating model
+# Also when we are using exact we have to specify the x & y arguments as well to give
+#   actual training x's and y's as input to predict. If exact is set to FALSE, it will linearly
+#   interpolate predictions for such lambda which is not given in model input.
+ridge_pred = predict(object = ridge_mod,newx = x_test,s = 0,exact = T,x =x_train,y=y_train)
+mean((ridge_pred - y_test)^2)
+
+# The coefficients of linear model of regression without ridge coefficient is
+predict(object = ridge_mod,s = 0,type = "coefficients")[1:20,]
 
 
+# Instead of choosing an arbitrary value of lambda we can use cross validation to chose the best
+#   lambda, we can use cv.glmnet() like we have used cv.glm() in previous chapters (Chapter 5)
+#   cv.glmnet() by default performs 10FOLD CROSS VALIDATION. This can be changed by updating the
+#   argument nfolds
+set.seed(1)
+?cv.glmnet
 
+# We have to give the x (input data) and y (response) in the cv.glmnet
+# Here we have only given the training data and also another argument called alpha=0 which
+#   indicates that the model is ridge and it will be passed on to glmnet function, cv. is
+#   sort of like wrapper function and any extra variable that is not part of it will be
+#   given to the function inside. The same thing applies for predict and whatever the method
+#   we are using
+cv_out = cv.glmnet(x = x_train,y = y_train,alpha=0,lambda = grid)
+plot(cv_out)
 
+# cv_out is a list of 10 and in that we have two elements which are lambda.min and lambda.max
+#   as well. These are nothing but the values at which the Cross validation error is lowest
+#   for which values of lambda. Please rememeber that by default for each lambda we are doing
+#   a 10 fold cv. Also we dont need to pass any lambda by default. It will automatically select
+#   a grid of values
+bestlambda = cv_out$lambda.min
+bestlambda
 
+# So using our best lambda which is 275 here (it might differe with seed value) and using the
+#   test data to predict.
+ridge_pred = predict(ridge_mod,s = bestlambda,newx = x_test)
+mean((ridge_pred - y_test)^2)
 
-
-
-
-
-
-
-
-
-
-
+ridge_pred = predict(ridge_mod,s = 4,newx = x_test)
+mean((ridge_pred - y_test)^2)
 
 
 
