@@ -647,8 +647,11 @@ ridge_mod$lambda[50]
 #   First argument is asusual the object is our model, and newx is on the x_test dataset that we want
 #   Third argument s, means for which value of lambda we want to predict. s is lambda value here.
 ?predict.glmnet
+
+# So we are predicting for the value of 4 lambda
 ridge_pred = predict(object = ridge_mod,newx = x_test,s = 4)
 
+# Taking the MSE of the errors for TEST dataset
 mean((ridge_pred - y_test)^2)
 
 
