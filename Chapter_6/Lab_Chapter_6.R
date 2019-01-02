@@ -651,11 +651,8 @@ ridge_mod$lambda[50]
 # So we are predicting for the value of 4 lambda
 ridge_pred = predict(object = ridge_mod,newx = x_test,s = 4)
 
-<<<<<<< HEAD
 # Taking the MSE of the errors for TEST dataset
-=======
 # The MSE of this particular ridge prediction is , ( This is for lambda = s = 4)
->>>>>>> 9174085b5cf56833301645b45eb18e20af188d3d
 mean((ridge_pred - y_test)^2)
 
 # Fitting the model with very high value of lambda , Here lambda is 1e10
