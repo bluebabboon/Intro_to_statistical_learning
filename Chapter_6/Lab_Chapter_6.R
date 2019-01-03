@@ -626,7 +626,7 @@ predict(object = ridge_mod,s = 50,type = "coefficients")[1:20,]
 ####
 ## Now lets split the dataset in to test and train and do the fitting of ridge again.
 
-set.seed(42)
+set.seed(1)
 # Creating indexes for test and train usig sample function
 train = sample(1:nrow(x),nrow(x)/2)
 test = (-train)
@@ -721,11 +721,52 @@ bestlambda
 
 # So using our best lambda which is 275 here (it might differe with seed value) and using the
 #   test data to predict.
+# So for this particular lambda value we are having the lowest cross validation error
 ridge_pred = predict(ridge_mod,s = bestlambda,newx = x_test)
 mean((ridge_pred - y_test)^2)
 
-ridge_pred = predict(ridge_mod,s = 4,newx = x_test)
-mean((ridge_pred - y_test)^2)
+
+# So lets use the entire data now and use glmnet and also use this particular lambda value
+final_out = glmnet(x = x,y = y,alpha = 0)
+final_out
+
+final_pred = predict(object = final_out,s = bestlambda,newx = x)
+# This is the final MSE ,total
+mean((final_pred - y)^2)
+
+final_coeff = predict(object = final_out,s = bestlambda,type = "coefficients")
+final_coeff
+
+dim(coef(final_out))
+
+
+
+######################
+### LASSO REGRESSION
+######################
+# We observed with ridge regression we can outperform null model as well as least squares as well
+# We want to see whether lasso can yield more accurate results than ridge.
+# In order to fit lasso we have to change the alpha argument to 1 instead of 0 in glmnet() function
+lasso_mod = glmnet(x = x_train,y = y_train,alpha = 1,lambda = grid)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
