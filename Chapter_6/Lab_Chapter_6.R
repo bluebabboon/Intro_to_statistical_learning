@@ -748,27 +748,56 @@ dim(coef(final_out))
 # We want to see whether lasso can yield more accurate results than ridge.
 # In order to fit lasso we have to change the alpha argument to 1 instead of 0 in glmnet() function
 lasso_mod = glmnet(x = x_train,y = y_train,alpha = 1,lambda = grid)
+lasso_mod
+
+plot(lasso_mod)
+
+# Here in the plot we have a coefficient plot that depending on the choice of tuning pamater some of
+#   coefficients will be equal to zero.
+# Basically it plots on the X axis is the L1 norm and on the y axis we have coefficients.
+
+# Lets perform cross-validation and compute the associated test error.
+set.seed(1)
+
+# Using the cv function that is supplied in the glmnet library
+# And also giving the extra paramter alpha which will be then passed on to the glmnet function
+#   Alpha is 1 , because we are performing the lasso regression
+cv_out = cv.glmnet(x = x_train,y = y_train,alpha = 1)
+cv_out
+
+
+plot(cv_out)
+bestlambda = cv_out$lambda.min
+
+lasso_pred = predict(object = lasso_mod,newx = x_test,s = bestlambda)
+lasso_pred
+
+# Taking the mse with the predictions from the lasso
+mean((lasso_pred - y_test)^2)
+
+# The MSE is lower than the test sete MSE of the null model and of least squares and very similar to
+#   the test MSE of ridge regression with lambda chosen by the cross validation
+
+# However this method has substantial advantage over ridge regression in that the resulting coeffs
+#   are sparse. Here we see that 12 of the 19 coefficients are exactly zero.
+out = glmnet(x = x,y = y,alpha = 1,lambda = grid)
+lasso_coeff = predict(object = out,type = "coefficients",s = bestlambda)
+lasso_coeff[1:20,]
+
+# So the lambda chosen by the cross validation by the lasso only has 7 variables.
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+###################
+#### PCR and PLS Regression
+###################
+# Principal component regression can be performed using the pcr() function which is part of the pls
+#   library. We can now apply PCR to the HItters data in order to predict Salary.
+#   Again we have to ensure that the NA missing values are ommited from the dataset.
+install.packages("pls")
+library(pls)
+set.seed(2)
 
 
 
