@@ -859,40 +859,61 @@ pcr_pred = predict(pcr_fit,newdata = x[test,],ncomp = 7)
 pcr_pred
 mean((pcr_pred - y_test)^2)
 
+# Finally we are going to use the full data to fit the model but only using until the 7 principal
+#   components. Because we have already explained upto 90% variance with this 7 and at this
+#   particular 7 components we have observed the minimum amount of MSEP , wrto test data.
+pcr_fit = pcr(y~x,scale = TRUE,ncomp=7)
+pcr_fit
+summary(pcr_fit)
 
 
 
+##########
+### Partial Least Squares
+##########
 
+# In the PCR method principal component regression method, we are identifying the linear combinations
+#   of the predictors and then these predictors which are derived in a special way to maximize the
+#   variance that is occuring.
+#   But it always need not be that the linear combination which has decreased the variance will always
+#     explain the response in good way.
+# Here the PCR comes in to picture which is supervised way of getting linear combination of the
+#   predictors.It also takes the response variables in to account while generating the linear
+#   combination.
+# While generating the linear combination the PLS places higher weight on the principal component
+#   which affects the response a lot.
 
+# We implement partial least squares using the plsr() function, which is present in the pls library.
+# The syntax is just as similar to pcr() function
+set.seed(1)
+pls_fit = plsr(Salary~., data = hitterdata,subset = train, scale = TRUE, validation = "CV")
+pls_fit
+summary(pls_fit)
 
+validationplot(pls_fit,val.type = "MSEP")
 
+# The lowest cross-validation error occurs when only M=2 partial least squares directions are used.
 
+# Evaluating the test set MSE for this particular components of 2
+pls_pred = predict(pls_fit,newdata = x_test,ncomp = 2)
+mean((pls_pred - y_test)^2)
 
+# The test set MSE is larger even when compared to the fits obtained from LASSO or Ridge.
 
+# Finally lets fit all the data using the full dataset.
+pls_fit = plsr(Salary~.,data = hitterdata,scale = TRUE,ncomp = 2)
+pls_fit
+summary(pls_fit)
 
+# If we notice the sumamry we can see the % of variance explained thing
+# Heere in particular with pls we are also optimizing the % of variance that has to be explained from
+#   the response variable as well. So using only 2 components of pls regressoin we are able to
+#   explain about 46% of variance where as we needed about 7 components to explain the same
+#   variance in the Salary from the pcr method
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# However the only draw back is that this doesn't give us good results of Mean squared error that we
+#   might get . Instead if we are more concentrated on getting higher accuracy of the response it
+#   will be better to use this LASSO or RIDGE. But if we want higher robustness it is better to use
+#   this method.
 
 
