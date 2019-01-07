@@ -798,6 +798,99 @@ lasso_coeff[1:20,]
 install.packages("pls")
 library(pls)
 set.seed(2)
+?pcr
+pcr_fit = pcr(Salary~.,data = hitterdata,scale = TRUE,validation = "CV")
+
+pcr_fit
+
+# The syntax fro pcr() funciton is similar tot that for lm() with a few additional options.
+#   Setting scale = TRUE, has the effect of standardizing each predictor, before generating the
+#   principal components.So that the scale on wchih variable is measured will not effect.
+#
+# Setting validation = "CV" causes pcr to compute the tenfold cross validation error for each possible
+#   valueof M, M is number of principal components used.
+summary(pcr_fit)
+
+# I found that we cannot save the summary(pcr_fit) in another variable. I dont know why is that.
+# Anyways in the summary of the pcr fit we find for each number of components taken we see the
+#   crossvalidation error and also the % of variance that is explained by selecting the number of
+#   componenets.
+
+# The pcr reports root mean squared error. To get MSE we have to square the error that we got.
+#
+# We can also plot the cross validation scores using the validationplot() fucntion.
+# here we hvae to give first argument as the object that we want to plot the validation scores for
+#   Second argument is the val.type which means which type of validaiton statistic to plot.
+#   Here val.type = "MSEP" , here MSEP stands for mean square of error prediction
+?validationplot
+validationplot(object = pcr_fit,val.type = "MSEP")
+
+# We can observe that smallest cross-validation error occurs when M is 16, However form the plot
+#   we also se4e that cross-validaiton error is roughliy the same whne only one compoenent is
+#   included in the model. This suggests that  a model that uses just a small number of componenets
+#   might suffice.
+
+# Apart from giving MSE our summary function also includes the % of variance that is explained by
+#   number of componets used. We can see that more than 90% of variance is explained when the
+#   components are only 7. This means insted of using our 19 components , if we use only 7 we can
+#   explain the 90% variation in the data input
+
+
+# Lets perform PCR on the training data and evaluate its test set performance.
+# Earlier we have just fit the PCR on the entire dataset. Here we are goint to use the argument
+#   subset to include only the indciecs that we get from the train dataset.
+#   As we know earlier our scale argument will standardize all the componenets.
+#   And validation argument is kept as "CV" to perform a 10 fold cross validation., we can use "LOO"
+#     to perform leave one out cross validation.
+#
+set.seed(1)
+pcr_fit = pcr(Salary~.,data = hitterdata,subset = train,scale = TRUE,validation = "CV")
+validationplot(pcr_fit,val.type = "MSEP")
+
+# We can observe from the plot that we have lowest cross-validaiotn error occurs when m=7
+# Lets compute the test MSE as follows
+# We can use predict method for this , as it has the inbuilt predict method with pcr
+#
+# predict method on the pcr takes object as its first argumetn, new data as the second one where
+#   we have to pass x as matrix , which we have already created earlier.
+# Third argument is number of principal componenets that we want to have the predictions for
+# Our predictions will be response values for each row of the new data we have supplied
+pcr_pred = predict(pcr_fit,newdata = x[test,],ncomp = 7)
+pcr_pred
+mean((pcr_pred - y_test)^2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
