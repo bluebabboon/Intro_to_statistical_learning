@@ -144,10 +144,14 @@ y2 = 1+2*x^7
 
 plot(x,y2)
 
-xfull = poly(x = x,degree = 7,raw = T)
+# Creating a full vector of x upto having 10 polynomials
+xfull = poly(x = x,degree = 10,raw = T)
 
+# Creating dataframe with response and the data
 datahere = data.frame(y2,xfull)
 
+###
+# Fitting by subset selection
 reg_model = regsubsets(y2~.,data = datahere)
 
 summary(reg_model)
@@ -170,44 +174,38 @@ minpointnumber_cp
 maxpointnumber_adjrsq = which.max(reg_summary$rsq)
 maxpointnumber_adjrsq
 
-coef(reg_model,7)
+coef(reg_model,minpointnumber_bic)
+coef(reg_model,minpointnumber_cp)
+coef(reg_model,maxpointnumber_adjrsq)
+
+# All the coefficients predicted here are very close to the actual model
+#   Particularicly fo rthis adjrsq, we have best coefficients which are actually exact.
+#   Rest of BIC and CP gave good results too
 
 
 
 
+##
+# Predicting by using lasso method with 10 fold cross validation
+lasso_model = cv.glmnet(x = xfull,y = y2,alpha = 1)
+lasso_model
 
+summary(lasso_model)
+plot(lasso_model)
 
+# lasso model by default gives us the best lambda where we get the lowest MSEP
+#   We can use this by calling it using $ and then calling lambda.min
+best_lambda = lasso_model$lambda.min
+best_lambda
 
+# As in lasso we have to predict coefficients by taking the best lambda value and then
+#   asking it to predic the coefficients by giving argument "type = "coefficients""
+# We can also ask it to predict just the responses if we dont give that argument and give the
+#   x data.
+lasso_coeff = predict(lasso_model,s = best_lambda,type = "coefficients")
+lasso_coeff[,1]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# lasso coefficients has predicted an extra for 5th power of x which is not present in our actual
+#   function.
+# However the predictions of the coefficients are very close.
 
