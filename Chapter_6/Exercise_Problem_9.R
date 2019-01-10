@@ -38,7 +38,7 @@ lm_pred = predict(object = lm_model,newdata = testdata)
 lm_pred
 
 # Mean squared error is
-mean((lm_pred - testdata$Apps)^2)
+lmsquarederror = mean((lm_pred - testdata$Apps)^2)
 
 
 ## c)
@@ -72,7 +72,7 @@ ridge_coeffs[-1,]
 # Getting the predictions of the best model, we have to give the x test data to predict the new y's
 # So we have created the model.matrix for the test data too.
 ridge_preds = predict(ridge_model,s = ridge_model$lambda.min,newx =xmatrix_test )
-mean((ridge_preds - testdata$Apps)^2)
+ridgesquarederror = mean((ridge_preds - testdata$Apps)^2)
 
 
 
@@ -83,13 +83,14 @@ lasso_model = cv.glmnet(x = xmatrix,y = traindata$Apps,alpha = 1)
 lasso_model
 
 lasso_preds = predict(lasso_model,newx = xmatrix_test,s = lasso_model$lambda.min)
-mean((lasso_preds - testdata$Apps)^2)
+lassosquarederror = mean((lasso_preds - testdata$Apps)^2)
 
 lasso_coeffs = predict(lasso_model,s = lasso_model$lambda.min,type = "coefficients")
 lasso_coeffs[-1,]
 
 # Out of total 17 predictors , to predict Apps , we have 3 of them equal to 0, So in total
 #   14 coefficients are non zero
+#
 
 
 
@@ -122,69 +123,30 @@ plot(pcr_fit)
 validationplot(pcr_fit,val.type = "MSEP")
 
 pcr_pred = predict(pcr_fit,newdata = testdata,ncomp = 17)
-mean((pcr_pred - testdata$Apps)^2)
+pcrsquarederror = mean((pcr_pred - testdata$Apps)^2)
 
 
 ## f)
 # Doing the same thing as in PCR but now the model is pls instead of pcr
+set.seed(1)
+?plsr
+pls_fit = plsr(Apps~.,data = traindata,scale = TRUE,validation = "CV")
+pls_fit
+summary(pls_fit)
 
+# With 15 components alone we had reached the lowest cross validation error
+plot(pls_fit)
 
+validationplot(pls_fit,val.type = "MSEP")
 
+pls_pred = predict(pls_fit,ncomp = 15,newdata = testdata)
+plssquarederror = mean((pls_pred - testdata$Apps)^2)
 
+error_vector = c(lmsquarederror,ridgesquarederror,lassosquarederror,pcrsquarederror,plssquarederror)
+error_vector
 
+plot(error_vector,type = "h")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# The lowest error we got is for lasso error.Also the errors are very close to each other.
 
 
