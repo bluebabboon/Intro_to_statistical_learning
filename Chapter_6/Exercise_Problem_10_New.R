@@ -72,51 +72,98 @@ ytest = responseY[test]
 
 
 # Giving column name y to the response , or else it will just create a random name
+# Combining the matrix and vector to create dataframe that we are going to use further
 trainframe = data.frame(y = ytrain,xtrain)
 testframe = data.frame(y = ytest,xtest)
 
 
+# Creating model.matrices for both training and testing to use them further in prediction
+# We need the intercept here because our matrix multiplication with the coefficients will have
+#   an intercept value that needs to be multiplied by 1, so dont keep [,-1] at the end
+trainmatrix = model.matrix(y~.,data = trainframe)
+testmatrix = model.matrix(y~.,data = testframe)
+
+
+## c)
+##
+##
+# Performing best subset selection on training set and then plot the training set MSE with the
+#   associated best model of each size
+library(leaps)
+reg_model = regsubsets(y~.,data = trainframe,nvmax = 20)
+reg_model
+
+summary(reg_model)
+
+
+## The training errors for each best model from i=1 to i=20 and storing them in trainerrors vector
+trainerrors = rep(0,20)
+
+# As regsubsets doesn't have predict method, we can either create one or just get the coefficients
+#   of a particular model size and then multiply with testdataset and then get predictions
+# Getting the coefficients of the ith best model with coef() function
+# Multiplying the coefficients which has intercept with the model.matrix we have created on the
+#   training set. Here we are doing matrix multiplication (Do not forget intercept)
+# Then getting the Mean of the squared error with the ytrain and then storing in the trainerrors
+#   vector in the current ith element
+for (i in 1:20) {
+  coeffi = coef(reg_model,i)
+  predsi = trainmatrix[,names(coeffi)] %*% coeffi
+  trainerrors[i] = mean((predsi - ytrain)^2)
+}
+
+# Plotting the MSE for training set on all different models we have created
+plot(trainerrors,type = "s")
+# The minimum error for training is on 20th one. Because we are fitting the model on training set
+#   So the error on training set should be lowest for the model which has maximum number of predictors
+which.min(trainerrors)
 
 
 
+## d)
+# Doing the same thing as above but using the model to get the test mse
+testerrors = rep(0,20)
+
+for (i in 1:20) {
+  coeffi = coef(reg_model,i)
+  predsi = testmatrix[,names(coeffi)] %*% coeffi
+  testerrors[i] = mean((predsi - ytest)^2)
+}
+
+# Plotting the MSE for testing set on all different models we have created
+plot(testerrors,type = "b")
+
+# So here instead of 20 variable model we have model which is saying that only taking 16 predictors
+#   is enough. Recall that we have assigned 4 predictors to 0 . So indirectly our best model selector
+#   is saying that neglect that predictors which gives zero influence in the response.
+which.min(testerrors)
+
+
+coef_best = coef(reg_model,16)
+coef_best
 
 
 
+## f)
+# Comparing the coefficients values at the best model vs actual coefficients
+
+coeffs
+coef_best
+
+names(coeffs) = paste0("X",1:20)
+coeffs
+
+names(coeffs)
+names(coef_best)
 
 
+givencoeff_frame = data.frame(namecolumn = names(coeffs),coeffs)
+bestcoeff_frame = data.frame(namecolumn = names(coef_best),coef_best)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Apparently merge is pretty good way of joining two different dataframes with different number of
+#   rows and columns too.
+# REFERE THIS LINK FOR NICE INFO http://www.datasciencemadesimple.com/join-in-r-merge-in-r/
+merged_coeffs = merge(x = givencoeff_frame,y = bestcoeff_frame)
 
 
 
