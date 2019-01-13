@@ -147,67 +147,95 @@ coef_best
 ## f)
 # Comparing the coefficients values at the best model vs actual coefficients
 
+# These are actual coefficients we have assigned
 coeffs
+
+# These are the best coefficients we got from the model
 coef_best
 
+# Our coeffs that we have actually created doesn't have names associated with it, So we are
+#   creating a vector of names and then assigning them to the names of the coeffs
+#
+# Paste will work as string concentation but the normal paste function will use a space " " as
+#   seperator , so we have to use paste0 function to remove that space
 names(coeffs) = paste0("X",1:20)
 coeffs
 
 names(coeffs)
+
+# The best coefficients that we have extracted from teh model already has the names so we are just
+#   matching them with the names we are creating newly to the actual coefficients
 names(coef_best)
 
 
+# Now we are creating dataframes including another column called namecolumn which is same for both
+#   given coeffs and best coeffs, It will act as key to sort out or merge those two dataframes
 givencoeff_frame = data.frame(namecolumn = names(coeffs),coeffs)
 bestcoeff_frame = data.frame(namecolumn = names(coef_best),coef_best)
 
 # Apparently merge is pretty good way of joining two different dataframes with different number of
 #   rows and columns too.
 # REFERE THIS LINK FOR NICE INFO http://www.datasciencemadesimple.com/join-in-r-merge-in-r/
-merged_coeffs = merge(x = givencoeff_frame,y = bestcoeff_frame)
+#
+# We can merge these two dataframes and there are different ways of merging
+#   We have to give a key value column by which it will merge the colummns together
+#   This is specified by the "by" argument. All the columns which has same column name are matched and
+#     grouped in to single one. THen using that as reference the rest of columns are added
+#   We also have another important argument called "all" which will let us which rows to be kep
+#   If we keep all.x=T, then all the rows of x dataframe are kept and those that are not there in y
+#     which are there in x are filled with NA's
+#   We have to keep all the given coefficients and the best ones which has lesser coeffs than actual
+#     should be assigned NA's , so we have to keep all.x=T ; THen which evr coefficient that is not
+#     represented by the current best model will be given NA's
+merged_coeffs = merge(x = givencoeff_frame,y = bestcoeff_frame,all.x = T)
+
+View(merged_coeffs)
+
+# Here if we view the coefficients dataframe after merging we can see that they are combined
+#   and where ever the coeffcieint is not present in the best coeff array it is assigned NA
+
+# Now we have to assign 0 to all the coeffs which are NA's to perform the squared error sum of coeffs
+# Getting bool array where the NA's are present
+is.na(merged_coeffs)
+
+# Assiging the index of those which has true to zero
+merged_coeffs[is.na(merged_coeffs)] = 0
+
+# All the NA's been given 0 value now
+merged_coeffs
+
+# Calculating the MSE of actual coeffs and predicted ones
+mean((merged_coeffs$coeffs - merged_coeffs$coef_best)^2)
+merged_coeffs$coef_best - merged_coeffs$coeffs
 
 
 
 
 
+## g)
+#
+# Creating a beta array which plots MSE of betas with the real to predicted ones from 1:20 models
 
+beta_vector = rep(0,20)
+beta_vector
 
+for (i in 1:20) {
+  coef_best = coef(reg_model,i)
+  names(coeffs) = paste0("X",1:20)
+  givencoeff_frame = data.frame(namecolumn = names(coeffs),coeffs)
+  bestcoeff_frame = data.frame(namecolumn = names(coef_best),coef_best)
+  merged_coeffs = merge(x=givencoeff_frame,y = bestcoeff_frame,all.x = T)
+  merged_coeffs[is.na(merged_coeffs)] = 0
+  beta_vector[i] = mean(( merged_coeffs$coeffs - merged_coeffs$coef_best )^2)
+}
 
+beta_vector
+which.min(beta_vector)
 
+# So for the 16th point we have the lowest value for this MSE of beta vector which it should be
+#   because we have originally 16 betas and made 4 out of 20 to zero randomly
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+plot(beta_vector,type = "b")
+points(which.min(beta_vector),beta_vector[which.min(beta_vector)],col = "red",cex=2,pch=20)
 
 
