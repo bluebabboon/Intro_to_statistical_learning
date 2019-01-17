@@ -88,12 +88,20 @@ se.bands = cbind(preds$fit + 2*preds$se.fit , preds$fit - 2*preds$fit)
 #     one is for each plot alone. follows the same c(bottom, left, top , right)
 par(mfrow = c(1,2),mar = c(4.5,4.5,1,1),oma = c(0,0,4,0))
 
+?plot
+# xlims for setting range i think ,i have to search this
+# cex is for modifying the relative magnification of the text part that displays in the graph
+#   area, it will be scaled up or down with respect to default value
+# col as you know is to set the color of the plot between the x and y axis
+plot(age,wage,xlim = agelims,cex = .5, col = "darkgrey")
 
+?title
+# this sets the title for the plot. If the outer is set to true the title will be placed in the
+#   outer margins of the plot
+title("Degree -4 Polynomial",outer = T)
 
-
-
-
-
+?lines
+lines(age_grid, preds$fit, lwd =2 , col = "blue")
 
 
 
