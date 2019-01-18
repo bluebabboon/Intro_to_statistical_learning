@@ -101,26 +101,115 @@ plot(age,wage,xlim = agelims,cex = .5, col = "darkgrey")
 title("Degree -4 Polynomial",outer = T)
 
 ?lines
+# lines will give us a line on the currently activated plot, here we are plotting all the fitted
+#   values on the existing plot
 lines(age_grid, preds$fit, lwd =2 , col = "blue")
 
+?matlines
+# This will plot the columns of one matrix against the columns of another.
+#   So here if we give matline(x,y) then the first column of x will be plotted against the first
+#     column of y, if one matrix has fewer columns plotting wil lcycle back thrgough the columns
+#     again.
+matlines(age_grid,se.bands,lwd = 1, col = "blue",lty = 3)
+
+# We have earlier discussed that whether or not we use orthogonal set of basis functions our
+#   predicitons wont be affected, lets check that
+preds2 = predict(fit2,newdata = list(age = age_grid),se.fit = TRUE)
+
+# The maximum value among the differences in 0 , which means that both the models have given
+#   us same output.This means that the way we use the argument raw=True or not will not affect
+#   the output predictions
+max(abs(preds2$fit - preds2$fit))
 
 
+# Whenever we are doing a polynomial regression first we have to decide on the number of
+#   polynomials we are going to use. We can use hypothesis testing to fit models ranging from
+#   linear to a degree of n polynomial and seek to determine the best SIMPLEST model wihch is
+#   sufficient to explain the relationship
+#
+# One way to do this using ANOVA function which performns an ANALYSIS OF VARIANCE using Ftest
+#   inorder to test the null hypothesis that a model M1 is sufficient enough to explain the
+#   data against the alternative hypothesis that a more complex model M2 is required.
+#
+# Inorder to use this anova function M1 and M2 must be nested models that means that predictors
+#   of M1 will be subset of M2 and M3 will have all the predictors of M2 and so on
+
+# Lets create models ranging from M1 to M5 and then check anova for each
+
+fit1 = lm(wage~age, data = wagedata)
+fit2 = lm(wage~poly(age,2),data = wagedata)
+fit3 = lm(wage~poly(age,3),data = wagedata)
+fit4 = lm(wage~poly(age,4),data = wagedata)
+fit5 = lm(wage~poly(age,5),data = wagedata)
+
+# Lets use anova to check the F value for each of this model and see the p value for that F
+?anova
+anova(fit1,fit2,fit3,fit4,fit5)
+
+# Anova says that p value comparing the linear Model M1 to quadratic model M2 is basically zero
+# This says that linear fit is not sufficient
+#
+# Similarily the p value comparing the quadratic model M2 to the cubic model M3 is also very low
+#   So the quadratic fit is also not sufficient
+# The p value is 5% when we compare model 3 with model4 and model 5 seems unnecessary
+
+# In this case instead of using hte anova funciton we could have obtained these p values
+#   more accurately we can just output the coefficients using the coef on the summary of this fit
+coef(summary(fit5))
+
+# When there are only two groups where group can be thought of as predictor, then one way
+# Anova test becomes t student with Fvalue = t^2 ,where t is student statistic
+
+# See that the t value for the second predictor that is age^2 is -11.98 , when we square it
+#   it is equal to teh F value of the 2nd fit , that is fit with age and age^2
+(-11.983)^2
 
 
+# Another thing to note is that anova works whether we used orthogonal polynomials or not.
+#   This means using the raw= True or not this will work.
+# And also having another predictor will not change the behaviour of F value in anova
+fit1 = lm(wage~education+age,data = wagedata)
+fit2 = lm(wage~education+poly(age,2),data = wagedata)
+fit3 = lm(wage~education+poly(age,3),data = wagedata)
+
+anova(fit1,fit2,fit3)
+
+# As an alternative approach we can also choose the polynomial degree using the cross validation
+#   as we have discussed in chapter 5
 
 
+# Lets consider the task of predicting whether an individual earn more than 250k$ per year
+# Here the response vector has to be created and then we can apply glm() function to fit
+#   logistic regression over it
+fit = glm(I(wage>250)~poly(age,4),data = wagedata,family = binomial)
+# Here note that we have created the binary variable response on the fly using wrapper function
+#   I() . The expression I>250 will produce TRUE where it is satisfied for that row and False
+#   viceversa. Then glm()  COERCES BOOLEAN TO BINARY by setting TRUE to 1 and FALSE to 0
+fit
+summary(fit)
+
+preds = predict(object = fit,newdata = list(age = age_grid),se.fit = TRUE)
+
+# However there is slight problem in the predictions here. The default prediction type for
+#   glm() is type="link" which is what we use here. This means that we get predictions for LOGIT
+# That is log( p(y|x) / (1 - p(y|x))) = X*beta
+# So the predictions we get are X*beta , but we need p(y|x) . So we have to transform the response
+#   to match the actual y
+
+# Transforming the logits to actual predictions
+pfit_actual = exp(preds$fit) / (1+exp(preds$fit))
+
+# Now creating the standard errors band ( Standard error = variance / number of observation)
+se.bands.logit = cbind(preds$fit + 2*preds$se.fit , preds$fit - 2*preds$se.fit)
+
+# We have to transform these standard errors also , because they are standard errors of logits
+#   We need standard errors of predictions
+se.bands = exp(se.bands.logit)/(1+exp(se.bands.logit))
 
 
-
-
-
-
-
-
-
-
-
-
+# We could have predicted these actual fits rather than logits and then transforming them again
+#   by simply giving another argument " type = "response" " in the predict function
+preds = predict(object = fit,newdata = list(age = age_grid),type = "response",se.fit = TRUE)
 
 
 
