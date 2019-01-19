@@ -211,12 +211,27 @@ se.bands = exp(se.bands.logit)/(1+exp(se.bands.logit))
 #   by simply giving another argument " type = "response" " in the predict function
 preds = predict(object = fit,newdata = list(age = age_grid),type = "response",se.fit = TRUE)
 
+# But however we would have ended up with negative probabilities
 
+# Plotting the plots , the beautiful type ones that we have seen before, here as we know some
+#   of the arguments, here type = "n" will not plot anything.
+plot(age,I(wage>250),xlim = agelims,type = "n",ylim = c(0,0.2))
 
+?jitter
+# jitter adds a small amount of noise to a numeric vector
+?points
+# cex, is for character or symbol , this will add "l" type of points on the given points of age on x
+#   and I(wage>250) on y axis
+points(jitter(age),I((wage>250)/5),cex = 0.5,pch="l",col = "darkgrey")
 
+# Now we are plotting the line plot on the current plot, with age_grid values on x axis and
+#   and y axis values are pfit_actual which are predictions we have got from the logistic regression
+lines(age_grid,pfit_actual,lwd=2,col = "blue")
 
-
-
+?matlines
+# plots columns of matrices of one columns with another column.
+#   x axis has age_grid values and y axis has sebands[,1] and sebands[,2] with same x axis values
+matlines(age_grid,se.bands,lwd = 1,col = "blue",lty = 3)
 
 
 
