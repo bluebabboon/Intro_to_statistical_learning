@@ -375,11 +375,21 @@ title("Smooting Splines")
 #
 # Smooth spline has combination of loss+penalty term, loss is for RSS and penalty is with
 #   lambda which is tunining parameter. THis lambda controls the degrees of freedom
+# Smooth splines has lambda and this determines effective degrees of freedom
+# In first fit we specified the degrees of freedom and for that particular number of DOF
+#   it calculates the lambda and uses that.
+# In second fit we specified cross validation is true, so it uses the CV method and determines
+#   lambda according to that
 fit = smooth.spline(age,wage,df = 16)
+fit
 fit2 = smooth.spline(age,wage,cv = TRUE)
+fit2
 
+# Here we see that after using cv method DOF are 6.8
 fit2$df
 
+# Plotting those two smooting splines with different colour
+# In previous method
 lines(fit,col = "red",lwd =2)
 lines(fit2,col = "blue",lwd =2)
 
