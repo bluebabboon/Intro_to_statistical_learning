@@ -233,6 +233,174 @@ lines(age_grid,pfit_actual,lwd=2,col = "blue")
 #   x axis has age_grid values and y axis has sebands[,1] and sebands[,2] with same x axis values
 matlines(age_grid,se.bands,lwd = 1,col = "blue",lty = 3)
 
+# The plot that we have plotted above is called RUG PLOT
+
+#### Now fitting the step function
+## We use cut() function
+?table
+# As we have already used table to get number of false positives and negatives in 4th chapther
+# Here we are using table to cross-classify factors to build a contingency table of counts at each
+#   combination of factor levels
+table(cut(age,4))
+?table
+
+?cut
+# Cut divides the range of x in to intervals and codes the values in x according to which interval
+#   they fall. The left most is level 1, after that is level 2 and so on.
+
+cut(age,4)
+# So the age has 3000 rows and then it will take each age value and gives it value among these 4
+#   (17.9,33.5] (33.5,49] (49,64.5] (64.5,80.1], The levels we have given are 4 , so it takes
+#   the max and min of age and then divides in to 4 regions and gives each age a factor based
+#   on where it is lying
+length(age)
+
+fit = lm(wage~cut(age,4),data = wagedata)
+coef(summary(fit))
+
+# In the above cut function it picks the levels automaticly, we can also specify our own cut
+#   limits by using the breaks argument in the cut function. The fucntion cut returns an
+#   ordered categorical variable.
+# The lm function then creates a set of dummy variables for use in the regression
+# If we see here the age < 35 is not there in the coefficients because we already have intercept
+#   and we can interpret that  intercept coefficeitn is the average salary for those age<35 and
+#   here it is 94160$
+# Other coefficients can be interpreted as the average increase in sslary that each age group gets
+#   apart from getting 94160$
+
+
+
+######################
+#### SPLINES
+######################
+
+# In order to use regression splines in R we use the splines library.
+# We saw that regression splines can be fit by constructing an appropriate matrix of basis function
+#   The bs() function generates matrix of basis functions for spliens with specified knots
+# We are using cubic splines by default
+library(splines)
+?bs
+# bs genretes the b splines basis matrix for a polynomial splines
+bsplines = bs(age,knots = c(25,40,60))
+
+# For splines basis representation we have y = beta0 + beta1* x + beta2*x^2 + beta3*x^3 +
+#   beta4* h1(x,eta1) + beta5* h2(x,eta2) + beta6*h3(x,eta3)
+#   Where h1(x,eta1) is (x-eta1)^3 if x>eta1 or 0 otherwise, Here eta1, eta2, eta3 are cutoff points
+#   or knots where the polynomial changes
+#
+# The bs function generates matrix will all the predictors from x to h3(x,eta3) ,Now we use that
+#   as input to the linear model and fit for predictors
+#
+# Here in this formula if instead of writing wage~bs(age,knots=c(eta1,eta2,eta3))
+#   and we assign that bs(...) to some variable and write it like wage~bsplines, the predict function
+#   will not work, it will predict for all the data instead of the new data we have passed.
+#   REMEBER THIS
+fit = lm(wage~bs(age,knots = c(25,40,60)),data = wagedata)
+
+# RECALL THAT CUBIC SPLINE WITH 3 KNOTS HAVE 7 DEGREES OF FREEDOM, Cubic spline with k knots have
+#   k+4 degrees of freedom
+summary(fit)
+
+# Summary says that intercept , x^2, x^3, h1(x,eta1), h2(x,eta2) are significant
+pred = predict(fit,list(age=age_grid),se = T)
+
+plot(age,wage,col = "gray")
+
+# For this lines to be plotted we have to give the formula as formula itself , we cannot assign it
+#   and then use it inside the lm.
+lines(age_grid,pred$fit,lwd = 2)
+
+# After fitting the line plot of the prediction we have to plot the standard errors for each age
+#   value. So we are plotting those standard errors with dashed lines
+?lines
+# lty is graphical paramter which specify the line type, it is present in the matlines function
+?matlines
+lines(age_grid,pred$fit+2*preds$se.fit,lty = "dashed")
+lines(age_grid,pred$fit-2*pred$se.fit,lty = "dashed")
+
+# Here we are using spline with 7 degrees of freedom, And we are specifying the knots postion here
+#   Insted of specifying we can use df to get uniform knots based on the quantiles and percentages
+dim(bs(age,knots = c(25,40,60)))
+dim(bs(age,df = 6))
+# In above having 3 knots means having 6 degrees of freedom, 3 for the knots itself, knot ceoffi-
+#   cients and another 3 for the cubic spline
+?attr
+# This function gets specific attributes of the object that we specify in the which argumetn
+#   Here bs() returns an object and inside that we are specifying the knots attribute we want to
+#   output
+#   Apart from knots we have another attributes sucnh as "degree" , "Boundary.knots" and
+#   "intercept" as well
+attr(bs(age,df=6),"knots")
+bs(age,df = 6)
+
+###########
+### NATURAL SPLINE
+############
+#
+# Instead of using the cubic spline we can use natural spline. Natural spline is nothing but having
+#   another constraint that the spline has additional boundary constraints. THe fucntion is
+#   required to be linear at the boundary (in the region where X is smaller than the smallest
+#   knot or larger thatn the largest knot)
+
+###### Natural Spline Degrees of FREEDOM EXPLANATION
+# A natural spline with same as cubic nature has 4 degrees of freedom
+# Cubic has 7 degrees of Freedom
+# Natural Spline has boundary knots as well , So this adds another 2 degrees of Freedom
+# Now total is 9, But we impose two constraints at each boundary, So 9 - 4 = 5 DOF
+# Out of 5 DOF , we already have intercept which takes care of one boundary constraint
+# So 5-1 = 4 DOF in TOTAL. DEGREES OF FREEDOM are nothing but here they are coefficients that we
+#   determine
+
+?ns
+dim(ns(age,df = 4))
+fit2=lm(wage~ns(age,df=4),data=Wage)
+pred2=predict(fit2 ,newdata=list(age=age_grid),se=T)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
