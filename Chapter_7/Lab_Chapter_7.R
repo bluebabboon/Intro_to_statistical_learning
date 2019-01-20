@@ -343,7 +343,7 @@ bs(age,df = 6)
 #   knot or larger thatn the largest knot)
 
 ###### Natural Spline Degrees of FREEDOM EXPLANATION
-# A natural spline with same as cubic nature has 4 degrees of freedom
+# A natural spline with same as cubic nature has 4 degrees of freedom (with 3 knots)
 # Cubic has 7 degrees of Freedom
 # Natural Spline has boundary knots as well , So this adds another 2 degrees of Freedom
 # Now total is 9, But we impose two constraints at each boundary, So 9 - 4 = 5 DOF
@@ -353,18 +353,38 @@ bs(age,df = 6)
 
 ?ns
 dim(ns(age,df = 4))
+
+# Instead of giving df option in ns() we can also use knots to directly give points of age
+# Fitting the new model with natural spline , with four degrees of freedom
 fit2=lm(wage~ns(age,df=4),data=Wage)
 pred2=predict(fit2 ,newdata=list(age=age_grid),se=T)
 
+# Givin red colur to natural spline fit
+lines(age_grid,pred2$fit,col = "red",lwd =2)
 
+################
+## SMOOTH SPLINE
+#################
+plot(age,wage,xlim = agelims,cex = 0.5,col = "darkgrey")
+title("Smooting Splines")
 
+?smooth.spline
 
+# Fits a cubic smoothing spline to the supplied data
+# Smooth spline is where it has knots at each unique value of X data, so knots = unique(x)
+#
+# Smooth spline has combination of loss+penalty term, loss is for RSS and penalty is with
+#   lambda which is tunining parameter. THis lambda controls the degrees of freedom
+fit = smooth.spline(age,wage,df = 16)
+fit2 = smooth.spline(age,wage,cv = TRUE)
 
+fit2$df
 
+lines(fit,col = "red",lwd =2)
+lines(fit2,col = "blue",lwd =2)
 
-
-
-
+legend("topright",legend = c("16 DF","6.8 DF"),col = c("red","blue"),
+        lty = 1 , lwd =2 , cex = 0.8)
 
 
 
