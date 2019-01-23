@@ -365,6 +365,10 @@ lines(age_grid,pred2$fit,col = "red",lwd =2)
 ################
 ## SMOOTH SPLINE
 #################
+#
+# For smoothing spline unlike the normal cubic spline we dont need to give any formula inside
+#   the lm function , we can directly use the inbuilt function called smooth.spline() for the
+#   model to be generated.
 plot(age,wage,xlim = agelims,cex = 0.5,col = "darkgrey")
 title("Smooting Splines")
 
@@ -380,6 +384,15 @@ title("Smooting Splines")
 #   it calculates the lambda and uses that.
 # In second fit we specified cross validation is true, so it uses the CV method and determines
 #   lambda according to that
+#
+# Smooth.spline needs no formula as the first argument
+#   First argument will be the predictor from which we want to predict the response from
+#   Second argument is the predictor value , No need to give any ~ and create a formula
+#   Third argument is either df, or cv, Df will give the number of degrees of freedom
+#     that we want the spline to have. Then it will calculate the lambda value for which those
+#     df are generated and will use that. Or
+#     We can use the cv option which will determine the lambda value for which the best on
+#     is generated and uses that which will reduce the cross validation error accordingly
 fit = smooth.spline(age,wage,df = 16)
 fit
 fit2 = smooth.spline(age,wage,cv = TRUE)
@@ -389,38 +402,36 @@ fit2
 fit2$df
 
 # Plotting those two smooting splines with different colour
-# In previous method
+# In previous method ,
 lines(fit,col = "red",lwd =2)
 lines(fit2,col = "blue",lwd =2)
 
+# To plot the legend on the top right corner
+#   We have to provide additional two arguments , first is legend which will tell us what text
+#   to write and then another argument called col which will assign colour to the respecitive
+#   lines that are plotted consecutively, So if you plot line 1 first and line 2 second
+#   then if we want to give line 1 blue and line 2 red colour then we have to give arguments
+#   in respective manner.
 legend("topright",legend = c("16 DF","6.8 DF"),col = c("red","blue"),
         lty = 1 , lwd =2 , cex = 0.8)
 
 
 
 
+######################
+#### LOCAL REGRESSION
+######################
 
+# Inorder to perform the local regression we use the loess() function
 
+# Plotting the basic plot
+plot(age,wage,xlim = agelims,cex = 0.5, col = "darkgrey")
 
+# Giving the title
+title("LOCAL Regression")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Fitting the models
+?loess
 
 
 
