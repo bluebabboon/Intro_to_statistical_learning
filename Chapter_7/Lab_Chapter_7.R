@@ -395,6 +395,7 @@ title("Smooting Splines")
 #     is generated and uses that which will reduce the cross validation error accordingly
 fit = smooth.spline(age,wage,df = 16)
 fit
+summary(fit)
 fit2 = smooth.spline(age,wage,cv = TRUE)
 fit2
 
@@ -432,6 +433,196 @@ title("LOCAL Regression")
 
 # Fitting the models
 ?loess
+
+# Fitting a polynomial surface determined by one or more predictors using local fitting
+#   It takes the following arguments. First one is the formula in shape of y~x and the seoncd one
+#   is "Span" which will let us select the number of local x values that we can use to predict
+#   the next y or the y in that region.
+
+# Fitting with wage as Y and age as x, with span as 0.2 and data is wagedata
+fit = loess(wage~age,span = 0.2,data = wagedata)
+
+# Fitting with span of 0.5 and everything else remains the same
+fit2 = loess(wage~age,span = 0.5,data = wagedata)
+
+# Predicting based on the first model
+preds1 = predict(fit,data.frame(age=age_grid))
+
+# Predicting based on the second model
+preds2 = predict(fit2, data.frame(age= age_grid))
+
+?lines
+# x on first argument , y on second,
+
+# Predicitons for the age grid values with fit1, where span is 0.2
+lines(age_grid,preds1,col = "red",lwd =2)
+
+# Predictions for the age grid values with fit2 ,where span is 0.5
+lines(age_grid,preds2,col = "blue",lwd =2)
+
+# Now plotting the legend to indicate the fitted values for which span they belong to
+?legend
+
+# legend needs a argument legend to write what we want to write in legend'
+#   This will be a vector of characters that we are going to represent based on the colour we
+#   have assitgned to our plots earlier
+# Then it needs another argument col to give the colour to the legends we have written
+# lwd to indicate the line width
+# lty to indicate the line type
+# cex stands for the character expression , here we are using 0.8
+legend("topright",legend = c("Span = 0.2","Span = 0.5"),col = c("red","blue"),
+       lty = 1,lwd = 2,cex = 0.8)
+
+
+# We have seen that the larger the span value we are using the smoother the fit is
+#   When we have kept span as 1 then it means that we are using the full data then it no longer
+#   differs from the normal regression that we use
+
+# Also we can use the locfit library to fit the local regression
+?locfit # Strange it says that this library is not there. Why are you doing this to me ISLR?
+
+
+
+###################################
+####### GENERALIZED ADDITIVE MODELS
+###################################
+
+# We can use GAM to predict wage using natural spline functions of year and age, and then
+#   treating the education as qualitative predictor
+
+# GAM's are nothing but big linear regression models where we have natural splines of each
+#   predictor with respect to another.So we can just use two natural splines to fit the model
+#   And then jsut adding them in the formula.
+gam1 = lm(wage~ns(age,5)+ns(year,4)+education , data = wagedata)
+gam1
+summary(gam1)
+
+
+# We have used natural splines above, we nwo are going to use smoothing spliesn instead of
+#   natural. But inorder to use smoothing splines we cannot assume this to be simple combination
+#   of basis functions and express it in linear regression using lm function
+#
+# Rather to use smoothing splines we have to use the gam library
+
+library(gam)
+?gam
+
+# gam library is used to fit generalized additive models by giving formula , just like we did
+#   as above for lm, everything remains same as above but only thing that changes is
+#   gam , instead of lm
+#
+# There is s() function which is part of gam library used to indicate whether we want to use
+#   the smoothing spline. We say to this function that whether we want to have 4 degrees of
+#   freedom or 5 degrees of freedom.
+# Since education variable is qualitative we can leave that as it is, and it will automatically
+#   converted in to dummy variable.
+?s
+
+# This s function which is a part of gam library is a symbolic wrapper to indicate a smooth
+#  spline term in a formula argument in gam.
+# If we want to use the smoothing spline in this gam function we cannot use lm so we are going
+#   to use this s() function to generate a smoothing spline : Smoothing spline is nothing but
+#     natural spline with knots at each distinct value of x values
+gam_m3 = gam(wage~s(year,4)+s(age,5)+education, data = wagedata)
+gam_m3
+summary(gam_m3)
+
+# Inorder to plot the gam plots we just have to call the model inside the plot like this
+par(mfrow = c(1,3))
+# Saying the se = TRUE will plot the standard errors for each value of the point of the x
+#   with +- 2 times the standard error. This wont have any effect on the qualitative variable
+#   though
+plot(gam_m3,se = TRUE,col = "blue")
+
+# The generic plot function recognizes that gam_m3 object is a class of gam and then invokes
+#   plot.gam() method.
+#
+# But conveniently even though our previous gam1 model is not actually generaed from the gam
+#   library, but still it can be used as part of plot.gam() function eventhough its generated
+#   using the lm() function.
+plot.Gam(gam1,se = TRUE,col = "red")
+
+# In this following plots we see that year variable is very linear in the starting and then
+#   it curves a little bit , but still it is very linear after that too. So we want to check
+#   whether splining is giving any effect on the model or not
+#
+# ANOVA can be used to check by changing the predictor from model to model2 by only changing
+#   single predictor and keeping all the rest as same. So this lets us to compare models and
+#   evaulates the predictors that we consider.
+#
+# So lets consider two more models apart from the one we have already created.
+#
+# In Model 1 we have education + age smoothed with 5 DOF
+# In Model 2 we have education + age smoothed with 5 DOF + year single
+# In Model 3 we have education + age smoothed with 5 DOF + year smoothed with 4 DOF
+#
+# Now we are going to fit anova comparing these 3 models inside anova function
+gam_m1 = gam(wage~s(age,5)+education, data = wagedata)
+gam_m2 = gam(wage~s(age,5)+education+year , data = wagedata)
+gam_m3 = gam(wage~s(year,4)+s(age,5)+education,data = wagedata)
+
+anova(gam_m1,gam_m2,gam_m3,test = "F")
+
+# We find evidence according to F statistic that adding year as single variable without any
+#   polynomial stuff is creating valuable contribution to the model prediction unlike adding
+#   smooth spline of year. This says that having linear function of year is better than a
+#   GAM that doesnot include year at all
+#
+# And also having more non linear consideration of year is not helping in prediction that much
+#   as we expected. So in conclusion it is better to consider model M2
+
+summary(gam_m3)
+
+# The below summary has lot of information to grab on to , It first give us AIC information
+#   AIC stands for Akaike information criteria
+# And then it gives us Anova for Parametric effects. I HAVE TO SEARCH WHAT THIS MEANS
+# And then it gives us another table for anova for non parametric effects
+# I have to see what is the difference between the anova for parametric and non parametric effects
+#
+# As it is considered in ISLR book Anova for non parametric effects :
+#   According to that our s(age,5) term is clearly significant.
+#   Here p values correspond to NULL HYPOTHESIS of a linear relationship versus that ALTERNATIVE
+#     HYPOTHESIS
+#   As per that large p value for s(year,4) says that this particular variable is not that useful
+#   However there is very celar evidence that a non-linear term of age is required and it
+#     contributes to the prediciton very well and might not occur by chance.
+
+###
+## Predicitons on the GAM objects.
+# We can make predictions from gam objects just like we did on the lm objects using the predict()
+#   method for the class of gam. Here we make the predcitions on the trainging set.
+
+preds_gam = predict(gam_m2,newdata = wagedata)
+
+# Here preds_gam are just predictions of y values for each value of data and it doesn't contain
+#   any extra information.
+
+
+#########
+### LO FUNCTION
+#########
+
+# We can use local regression fits as building blocks in a GAM insted of using smoothing splines
+#   or using natural splines, We can achieve this by using lo function.
+
+?lo
+
+# This lo function specify a loess fit in GAM formula
+#
+# Here we have used lo function to use local regression on the age variable with a span of 0.7
+gam_lo = gam(wage~s(year,4)+education+lo(age,span = 0.7), data = wagedata)
+
+# plot.GAM function is activated by passing the gam_lo object to this and se = TRUE
+#   argument will let the standard errors to be plotted in the plot.
+plot(gam_lo,se = TRUE, col = "green")
+
+
+
+
+
+
+
+
 
 
 
