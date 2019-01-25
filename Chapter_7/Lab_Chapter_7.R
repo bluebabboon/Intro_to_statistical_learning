@@ -616,24 +616,83 @@ gam_lo = gam(wage~s(year,4)+education+lo(age,span = 0.7), data = wagedata)
 #   argument will let the standard errors to be plotted in the plot.
 plot(gam_lo,se = TRUE, col = "green")
 
+# We can also use the lo function to create the interactions before calling the gam() function
+#   Interactions will let us know the correlation effect of one predictor on another and will
+#   create an extra predictor to be used for prediction
+gam_lo_i = gam(wage~lo(year,age,span = 0.5)+education, data = wagedata)
+
+# This above model fit s a two-term model in which the first term is interaction between
+#   age and year , Then it is fit by a local regression surface.
+#
+# We can also plot the resulting two dimensional surface using a package called AKIMA PACKAGE
+
+#################
+## AKIMA PACKAGE
+#################
+
+install.packages("akima")
+library(akima)
+
+plot(gam_lo_i)
+
+# The above plot will plot us the two dimensional surface. With the year and age on the
+#   x and y axes and the response wage on the 3rd z axis . Thus giving us the 3 dimensional
+#   relationship between the three variables
+#
+# In order to fit a logistic regression GAM we can once again use the I() function in
+#   constructing the binary response variabel and setting the family as binomial()
+
+###################################
+#### GAM USING LOGISTIC REGRESSION
+###################################
+
+?I()
+
+# I() will help us to change the class of the object to indicate that it should be treated
+#   as is. Here in the below formula saying wage>250 will create a 1 if its true and 0 if its
+#   false. So we are saying that keep the 0 and 1's as it is and consider the response y as
+#   binary variable.
+#
+#   And then we are saying that family is binomial which will let us use the logistic regression
+
+gam_lr = gam(I(wage > 250)~year+s(age,df = 5)+education,
+                 family = binomial, data = wagedata)
+
+# Splitting our plot area in to 1 row and 3 columns to plot our plots of GAM
+par(mfrow = c(1,3))
+
+# Using se argument to say that we are interested in plotting the standard errors also apart
+#   from the actual plot. And then we are giving the colour green to the plots.
+plot(gam_lr, se = TRUE, col = "green")
+
+gam_lr
+
+summary(gam_lr)
+
+# Calling plot on the above model will trigger the plot.GAM function and then it plots
+#   a seperate plot for each variable that we have given and the response of those
+#   plot on the y axis.
 
 
+# We can see that there are no high earners in the <HS category. Where the wage is > 250 is not
+#   happening when the education that the individual has is lesser than high school
 
+?table
+# Table is used before and it just cross classifies the factors to build a contigency table
+#   of the counts at each combination of factor levels
+table(education,I(wage>250))
 
+# Since the education category which is lesser than the HS category has no impact on the
+#   response we can exclude that using the subset function and then exclude that from the data
+#   that we supply
 
+# Here we are not considering all the data where the education is less that HS Grad
+#   and we have to type that exactly that we are going to face that in the input data we supply.
+gam_lr_s = gam(I(wage>250)~year+s(age,df = 5)+education,
+                 family = binomial , data = wagedata, subset = (education != "1. < HS Grad "))
 
-
-
-
-
-
-
-
-
-
-
-
-
+# Plotting the new model now
+plot(gam_lr_s , se = TRUE, col = "green")
 
 
 
