@@ -58,6 +58,10 @@ title("Cross validation errors")
 model_fit_list = list()
 model_fit_names = paste0("fit",1:10)
 
+# Some information on assign and how it works
+?assign
+
+
 for (i in 1:10) {
 
   # Creating a current linear lm model with lm function
@@ -86,6 +90,14 @@ anova(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10)
 # Anova says that adding the 2nd degree to the fit will incerase the F value , and then adding another
 #   3rd variable have nice significance. But adding the 4th one is not giving any value addition
 
+# Now we have to plot these fit that we have found useful which is 3rd fit for us
+age_limits = range(wagedata$age)
+
+age_grid = seq(age_limits[1],age_limits[2])
+
+fit10 = lm(wage~poly(age,10),data = wagedata)
+
+preds4 = predict(fit3,newdata = list(age=age_grid),se.fit = TRUE)
 
 
 
@@ -109,19 +121,36 @@ summary(step_fit  )
 # Now we want to choose the optimal number of cuts , but we are going to iterate from 1 to 10 number
 #   of cuts and for each cut we are going to save the error and see which error is the lowest
 
-step_cv_errors = rep(0,10)
+step_cv_errors = rep(0,9)
+
+# Here we cannot use a single cut, so we have to keep the range of i from 2 to 10, or else the cut
+#   function will not work here.
 
 for (i in 2:10) {
-  step_glm_fit =  glm(wage~cut(age,i),data = wagedata)
-  step_cv_errors[i] = cv.glm(glmfit = step_glm_fit,data = wagedata,K = 10)$delta[1]
+  # We have to add the new factor values of age that is produced by the cut function over the age
+  #   to the wagedata dataframe, then we have to keep on updating it , or else it doesn't consider
+  #   the new cut ages that we have specified
+  #
+  # We are adding a new column of values to our dataframe wagedata called cut_age and then using that
+  #   cut_age in the glm function formula, poly() used to work without adding anything like this
+  # But i dont understand why is this not working. Have to check this.
+  wagedata$cut_age = cut(age,i)
+  step_glm_fit =  glm(wage~cut_age,data = wagedata)
+  step_cv_errors[i-1] = cv.glm(glmfit = step_glm_fit,data = wagedata,K = 10)$delta[1]
 }
 
+step_cv_errors
+which.min(step_cv_errors)
 
+# So using 8 cuts of age seems to give us the lowest cross validation error, because the 7th index
+#   is for 8 cuts
 
+plot(2:10,step_cv_errors,type = "b")
 
-
-
-
+# So finally in our data frame we have cut_age column with 10 age as factors, Here the cut will
+#   automatically decides where to give the cut in the range of age values, if we dont specify
+#   anything by default.
+table(wagedata$cut_age)
 
 
 
