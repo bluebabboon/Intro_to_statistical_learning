@@ -31,16 +31,21 @@ library(gam)
 
 attach(wagedata)
 
-gam_model1 = gam(wage~s(year,4), data = wagedata)
+gam_model1 = gam(wage~maritl, data = wagedata)
 
 summary(gam_model1)
 
+# s() function is used to indicate the SMOOTHING spline type line in the gam function.
+# We can also use ns() to inidicate the natural spline and  bs() to indicate the cubic spline
+#   which is the normal type of spline without natural spline constraints, which is to have
+#   boundary constraints at the start and end of the curve.
+
+plot(gam_model1,se = TRUE,col="green")
 
 
-
-
-
-
+gam_model2 = gam(wage~jobclass, data = wagedata)
+summary(gam_model2)
+plot(gam_model2,se=TRUE,col = "green")
 
 
 
