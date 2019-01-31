@@ -156,10 +156,6 @@ horsepower_anova = model_create_fun(datahere = autodata,response = "mpg",predict
 # Calling the horsepower_anova
 horsepower_anova
 
-cylinder_anova = model_create_fun(autodata,"mpg","cylinders",4)
-
-# calling the cylinder_anova
-cylinder_anova
 
 acceleration_anova = model_create_fun(autodata, "mpg","acceleration",4)
 
@@ -169,7 +165,7 @@ acceleration_anova
 
 # So from the above considerations we see that its better to take
 # horsepower until degree 2
-# cylidners until degree 3
+# cylidners is factor , so no degree is needed
 # acceleration until degree 4
 
 # And we have already considered displacement until degree 2
@@ -179,7 +175,7 @@ acceleration_anova
 #   lets just fit a gam function with smooth splines or natural splines or just lm
 #   but with the given number of degrees is from the above
 
-gam_final = gam(mpg~poly(horsepower,2)+poly(cylinders,3)+
+gam_final = gam(mpg~poly(horsepower,2)+cylinders+
                   poly(acceleration,4)+poly(displacement,2),data = autodata)
 gam_final
 
