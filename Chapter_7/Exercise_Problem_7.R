@@ -49,137 +49,20 @@ plot(gam_model2,se=TRUE,col = "green")
 
 
 
+gam_model3 = gam(wage~race, data = wagedata)
+summary(gam_model3)
+plot(gam_model3, se = TRUE, col = "red")
 
 
+gam_model4 = gam(wage~ns(age,4), data = wagedata)
+gam_model5 = gam(wage~ns(age,4)+jobclass, data = wagedata)
+gam_model6 = gam(wage~ns(age,4)+maritl, data = wagedata)
+gam_model7 = gam(wage~ns(age,4)+jobclass+maritl, data = wagedata)
 
+anova(gam_model4,gam_model6,gam_model7)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# In the below anova table we see that both jobclass and maritl are significant as they have
+#   significant p values. Adding these predictors is increasing the predicting power of the
+#   response and the anova says thast the p values are very low which makes these predictors
+#   significant.
 
