@@ -447,19 +447,43 @@ mean((rf_preds - bostondata$medv[-train])^2)
 importance(rf_boston_model1)
 
 
+# Here tow measure of variable importance are reported. The first one is based on the mean
+#   decrease of accurcy in prediction on the out of bag samples when a given variable is
+#   excluded from the model. So having that variable will increase the accuracy
+# And the seond one is measure of total decrrese in node imputirty that results from splits
+#   over that variable, averaged over all the trees.
+# In case of regression trees the node impurity is measured by the training RSS and
+# In case of classification trees the node impurity is measured by deviance
+
+# Plots of these importance measures can be produced using the varImpPlot() function
+
+varImpPlot(rf_boston_model1)
+
+# From this plot we can see that lstat and rm are the most important variables
 
 
 
+###############
+### BOOSTING
+##############
 
+# Here we can use the gbm package and within it the gbm() function, to fit the boosted
+#   regression tree to the Boston data set. We run this gbm() with the option of
+#   distribution = "gaussian", because this is a regression problem
+#   If it is classification problem we are going to use distribution = "bernoulli"
+# THe argument n.trees = 5000 indicatest that we want 5000 trees and the option
+#   interaction.depth = 4 , limits the depth of each tree
 
+library(gbm)
 
+set.seed(1)
 
+boost_boston = gbm(medv~. , data = bostondata[train,] , distribution = "gaussian"
+                          , n.trees = 5000, interaction.depth = 4)
 
+boost_boston
 
-
-
-
-
+summary(boost_boston)
 
 
 
