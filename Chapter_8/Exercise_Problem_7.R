@@ -26,8 +26,9 @@ rf_boston_model = randomForest(medv~. ,
                                mtry = 6,
                                importance = TRUE
                                )
+rf_boston_model
 
-
+rf_boston_model$forest
 
 
 
