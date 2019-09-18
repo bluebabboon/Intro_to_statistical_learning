@@ -354,7 +354,8 @@ hist(mpg,col = "red",breaks = 15)           # we can add extra arguments as well
                                             #   break it into 15 item sets,equally spaced and
                                             #   calculate frequency for each set
 
-hist(cylinders)                             # We cannot plot histogram for non numeric values,here cylinders is factor and therefore it cannot be plotted
+hist(cylinders)                             # We cannot plot histogram for non numeric values,here
+                                            # cylinders is factor and therefore it cannot be plotted
 
 hist(as.integer(cylinders))                 # we can use as.integer() to convert cylinders to integer
                                             #   and then plot
